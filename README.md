@@ -2,17 +2,17 @@
 
 An open-source Android PDF toolkit adapted from [PDFCraft](https://github.com/PDFCraftTool/pdfcraft). Merge, split, organize, convert and annotate documents through a mobile application built with Capacitor, Next.js and WebAssembly.
 
-[Download verified ZIP](https://github.com/dr-askar/FolioKit/releases/download/v0.1.3-preview/FolioKit-universal.zip) · [Direct APK](https://github.com/dr-askar/FolioKit/releases/download/v0.1.3-preview/FolioKit-universal.apk) · [Release details](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.3-preview) · [Report a bug](https://github.com/dr-askar/FolioKit/issues/new/choose) · [Contribute](CONTRIBUTING.md) · [Build Android](ANDROID.md)
+[Download verified ZIP](https://github.com/dr-askar/FolioKit/releases/download/v0.1.4-preview/FolioKit-universal.zip) · [Direct APK](https://github.com/dr-askar/FolioKit/releases/download/v0.1.4-preview/FolioKit-universal.apk) · [Release details](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.4-preview) · [Report a bug](https://github.com/dr-askar/FolioKit/issues/new/choose) · [Contribute](CONTRIBUTING.md) · [Build Android](ANDROID.md)
 
 ## Install
 
 Download the release ZIP using your phone, extract it with the file manager, then open `FolioKit-universal.apk`. The direct APK download contains the same bytes. Allow installation from that browser/file manager when Android asks. Release previews are experimental; keep backups of important documents.
 
-The signed 0.1.3 preview can update the signed 0.1.2 preview in place: it keeps the same distribution key and increases versionCode to 4. Release checksums are attached as `SHA256SUMS.txt`. The ZIP is checked for integrity and contains the unchanged signed APK, not a different application.
+The signed 0.1.4 preview can update the signed 0.1.2/0.1.3 previews in place: it keeps the same distribution key and increases versionCode to 5. Release checksums are attached as `SHA256SUMS.txt`. The ZIP is checked for integrity and contains the unchanged signed APK, not a different application.
 
 The universal APK has no CPU architecture restrictions. Android 6.0 (API 23) or newer and an updated Android System WebView are required. Device policies, available storage and WebView compatibility can still affect installation or operation. A universal APK cannot guarantee support for every phone.
 
-The old [Install Check helper](https://github.com/dr-askar/FolioKit/releases/tag/install-check-v0.1.0) validates **only 0.1.2** and will reject newer releases. Install 0.1.3 directly from its extracted APK; do not use that helper for this update. [Diagnostic instructions and source](tools/install-check/README.md).
+The old [Install Check helper](https://github.com/dr-askar/FolioKit/releases/tag/install-check-v0.1.0) validates **only 0.1.2** and will reject newer releases. Install 0.1.4 directly from its extracted APK; do not use that helper for this update. [Diagnostic instructions and source](tools/install-check/README.md).
 
 ## What is included
 
@@ -24,13 +24,15 @@ The old [Install Check helper](https://github.com/dr-askar/FolioKit/releases/tag
 
 Core document tools process files locally. Office/WASM conversions remain experimental on Android, and not every inherited tool has been validated on physical devices. Check [known limitations and verification details](ANDROID.md) before relying on a workflow.
 
-The complete package includes large Office and Python/PDF engines. The signed 0.1.3 preview is **203 MB (194.02 MiB)**, down from approximately 566 MiB in the first build. Ordinary installation and activity launch passed on fresh Android 6, 15 and 16 emulators; this does not verify every document tool or physical phone. See [0.1.3 validation](docs/android-v0.1.3-validation.md) and the attached size report; smaller downloads must not silently remove languages or engines.
+The complete package includes large Office and Python/PDF engines. The signed 0.1.4 preview is **203 MB (194.01 MiB)**, down from approximately 566 MiB in the first build. Ordinary installation and activity launch passed on fresh Android 6, 15 and 16 emulators; this does not verify every document tool or physical phone. See [0.1.4 validation](docs/android-v0.1.4-validation.md) and the attached size report; smaller downloads must not silently remove languages or engines.
 
 ## Reading and marking on phones
 
 Open a PDF in the reader, then tap Highlight, Draw or Text on the bottom toolbar. Use Tool settings to choose a color or width and tap Done: the tool stays active with the settings closed. Highlight by moving your finger across text or a page margin. Select the hand icon (Read / scroll) to scroll with one finger; use two fingers to pinch zoom. Undo is on the bottom bar, and Redo is in More.
 
 Save exports the marked PDF through Android's share sheet. Choose a destination and reopen the saved copy to confirm your work was saved. Android Back closes an expanded reader panel first; closing a changed document asks for confirmation. The smaller app header, two-column tool cards and collapsible reference material also leave more room on small screens. Touch checks cover narrow widths, landscape and Arabic/RTL; physical-device feedback and improvements to individual inherited tools are welcome.
+
+Page tools now offer larger/smaller preview controls, a remembered one/two/three-column layout and a separate magnifier. Inspect the original page with zoom/fit before changing selection; closing inspection leaves your selected pages unchanged. The reader sidebar and More menu stay within the screen, and deletion uses a compact undo notice.
 
 ## Build from source
 
