@@ -29,6 +29,7 @@ env:
 jobs:
   # Build job
   build:
+    if: github.repository == 'PDFCraftTool/pdfcraft'
     runs-on: ubuntu-latest
     steps:
       # Checkout the repository
@@ -80,6 +81,7 @@ jobs:
 
   # Deployment job
   deploy:
+    if: github.repository == 'PDFCraftTool/pdfcraft'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

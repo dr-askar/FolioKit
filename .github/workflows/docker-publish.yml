@@ -29,6 +29,7 @@ jobs:
   # Stage 1: Build images for each platform in parallel using native runners
   # ============================================================================
   build:
+    if: github.repository == 'PDFCraftTool/pdfcraft'
     runs-on: ${{ matrix.runner }}
     
     outputs:
@@ -118,7 +119,7 @@ jobs:
   # ============================================================================
   merge:
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
+    if: ${{ github.repository == 'PDFCraftTool/pdfcraft' && (github.event_name != 'pull_request') }}
     needs: build
     
     permissions:

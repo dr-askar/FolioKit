@@ -12,6 +12,7 @@ env:
 
 jobs:
   build-tauri:
+    if: github.repository == 'PDFCraftTool/pdfcraft'
     name: Build ${{ matrix.platform }}
     strategy:
       fail-fast: false
