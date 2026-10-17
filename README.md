@@ -2,7 +2,7 @@
 
 An open-source Android PDF toolkit adapted from [PDFCraft](https://github.com/PDFCraftTool/pdfcraft). Merge, split, organize, convert and annotate documents through a mobile application built with Capacitor, Next.js and WebAssembly.
 
-[Download APK previews](https://github.com/dr-askar/FolioKit/releases) · [Report a bug](https://github.com/dr-askar/FolioKit/issues/new/choose) · [Contribute](CONTRIBUTING.md) · [Build Android](ANDROID.md)
+[Download signed universal APK](https://github.com/dr-askar/FolioKit/releases/download/v0.1.2-preview/FolioKit-universal.apk) · [Release details](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.2-preview) · [Report a bug](https://github.com/dr-askar/FolioKit/issues/new/choose) · [Contribute](CONTRIBUTING.md) · [Build Android](ANDROID.md)
 
 ## Install
 
@@ -19,7 +19,7 @@ The universal APK has no CPU architecture restrictions. Android 6.0 (API 23) or 
 
 Core document tools process files locally. Office/WASM conversions remain experimental on Android, and not every inherited tool has been validated on physical devices. Check [known limitations and verification details](ANDROID.md) before relying on a workflow.
 
-The complete package includes large Office and Python/PDF engines. The 0.1.1 preview is approximately **213 MiB**, down from approximately 566 MiB in the first build. See the attached size report for each release; smaller downloads must not silently remove languages or engines.
+The complete package includes large Office and Python/PDF engines. The signed 0.1.2 preview is **203 MB (193.93 MiB)**, down from approximately 566 MiB in the first build. Ordinary installation and activity launch passed on fresh Android 6, 15 and 16 emulators; this does not verify every document tool or physical phone. See the attached size report for each release; smaller downloads must not silently remove languages or engines.
 
 ## Build from source
 
