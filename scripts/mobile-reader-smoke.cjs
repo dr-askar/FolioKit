@@ -19,7 +19,7 @@ const http = require('node:http');
   }
   const fixture = Buffer.from(await original.save());
   const hosted = fs.existsSync(path.join(root, 'en/tools/pdf-reader/index.html'));
-  const mime = { '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.pdf': 'application/pdf', '.wasm': 'application/wasm', '.ftl': 'text/plain' };
+  const mime = { '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.html': 'text/html', '.pdf': 'application/pdf', '.wasm': 'application/wasm', '.ftl': 'text/plain', '.svg': 'image/svg+xml' };
   const server = http.createServer((req, res) => {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     if (pathname === '/foliokit-touch-test.pdf') { res.setHeader('Content-Type', 'application/pdf'); res.end(fixture); return; }

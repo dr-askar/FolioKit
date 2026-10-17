@@ -17,9 +17,11 @@ Report reproducible bugs, test a release on your Android device, improve accessi
 For Android translation, export or packaging changes, run:
 
 ```sh
-npm test -- src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
 npx tsc --noEmit
 ```
+
+For mobile reader or layout work, also run `npm run test:mobile`; after `npm run android:sync`, run `FOLIOKIT_STATIC_DIR=out npm run test:mobile` to exercise the exported app and its Save button. See [the touch check setup](ANDROID.md#reproduce-touch-regression-checks) for Chromium installation, screenshots and test coverage. Keep tool settings separate from the selected annotation mode, preserve readable document space and verify saved annotations by reopening the output. Include narrow-phone, landscape and RTL evidence with UI changes.
 
 Build an APK for native or packaging changes and run the APK report described in ANDROID.md. State exactly which devices/emulators and operations you tested. Emulator launch success does not establish that all PDF tools work on every device.
 
