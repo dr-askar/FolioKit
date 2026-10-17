@@ -1,0 +1,138 @@
+{
+  "en": {
+    "read": "Read / scroll",
+    "settings": "Tool settings",
+    "done": "Done",
+    "undo": "Undo",
+    "redo": "Redo",
+    "unsaved": "Close the PDF? Make sure you have saved a copy with your changes first."
+  },
+  "ar": {
+    "read": "قراءة وتمرير",
+    "settings": "إعدادات الأداة",
+    "done": "تم",
+    "undo": "تراجع",
+    "redo": "إعادة",
+    "unsaved": "إغلاق الملف؟ تأكد أنك حفظت نسخة تتضمن تعديلاتك أولاً."
+  },
+  "he": {
+    "read": "קריאה וגלילה",
+    "settings": "הגדרות כלי",
+    "done": "סיום",
+    "undo": "ביטול",
+    "redo": "ביצוע חוזר",
+    "unsaved": "לסגור את המסמך? יש לוודא שנשמר עותק הכולל את השינויים."
+  },
+  "fr": {
+    "read": "Lire / défiler",
+    "settings": "Réglages de l’outil",
+    "done": "Terminé",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "unsaved": "Fermer le PDF ? Vérifiez que vous avez enregistré une copie avec vos modifications."
+  },
+  "de": {
+    "read": "Lesen / scrollen",
+    "settings": "Werkzeugeinstellungen",
+    "done": "Fertig",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "unsaved": "PDF schließen? Speichern Sie zuerst eine Kopie mit Ihren Änderungen."
+  },
+  "es": {
+    "read": "Leer / desplazar",
+    "settings": "Ajustes de herramienta",
+    "done": "Listo",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "unsaved": "¿Cerrar el PDF? Asegúrate de guardar una copia con tus cambios."
+  },
+  "pt": {
+    "read": "Ler / rolar",
+    "settings": "Definições da ferramenta",
+    "done": "Concluído",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "unsaved": "Fechar o PDF? Certifique-se de guardar uma cópia com as alterações."
+  },
+  "it": {
+    "read": "Leggi / scorri",
+    "settings": "Impostazioni strumento",
+    "done": "Fine",
+    "undo": "Annulla",
+    "redo": "Ripeti",
+    "unsaved": "Chiudere il PDF? Assicurati di aver salvato una copia con le modifiche."
+  },
+  "zh": {
+    "read": "阅读 / 滚动",
+    "settings": "工具设置",
+    "done": "完成",
+    "undo": "撤销",
+    "redo": "重做",
+    "unsaved": "关闭 PDF？请先确认已保存包含修改的副本。"
+  },
+  "zh-TW": {
+    "read": "閱讀 / 捲動",
+    "settings": "工具設定",
+    "done": "完成",
+    "undo": "復原",
+    "redo": "重做",
+    "unsaved": "關閉 PDF？請先確認已儲存包含修改的副本。"
+  },
+  "ja": {
+    "read": "閲覧・スクロール",
+    "settings": "ツール設定",
+    "done": "完了",
+    "undo": "元に戻す",
+    "redo": "やり直す",
+    "unsaved": "PDF を閉じますか？変更を含むコピーを保存したことを確認してください。"
+  },
+  "ko": {
+    "read": "읽기 / 스크롤",
+    "settings": "도구 설정",
+    "done": "완료",
+    "undo": "실행 취소",
+    "redo": "다시 실행",
+    "unsaved": "PDF를 닫을까요? 변경 사항이 포함된 사본을 먼저 저장하세요."
+  },
+  "id": {
+    "read": "Baca / gulir",
+    "settings": "Pengaturan alat",
+    "done": "Selesai",
+    "undo": "Urungkan",
+    "redo": "Ulangi",
+    "unsaved": "Tutup PDF? Pastikan salinan dengan perubahan Anda sudah disimpan."
+  },
+  "vi": {
+    "read": "Đọc / cuộn",
+    "settings": "Cài đặt công cụ",
+    "done": "Xong",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "unsaved": "Đóng PDF? Hãy lưu bản sao có các thay đổi trước."
+  },
+  "ro": {
+    "read": "Citire / derulare",
+    "settings": "Setări instrument",
+    "done": "Gata",
+    "undo": "Anulare",
+    "redo": "Refacere",
+    "unsaved": "Închideți PDF-ul? Asigurați-vă că ați salvat o copie cu modificările."
+  },
+  "pl": {
+    "read": "Czytaj / przewijaj",
+    "settings": "Ustawienia narzędzia",
+    "done": "Gotowe",
+    "undo": "Cofnij",
+    "redo": "Ponów",
+    "unsaved": "Zamknąć PDF? Upewnij się, że zapisano kopię ze zmianami."
+  },
+  "cs": {
+    "read": "Číst / posouvat",
+    "settings": "Nastavení nástroje",
+    "done": "Hotovo",
+    "undo": "Zpět",
+    "redo": "Znovu",
+    "unsaved": "Zavřít PDF? Nejprve se ujistěte, že jste uložili kopii se změnami."
+  }
+}

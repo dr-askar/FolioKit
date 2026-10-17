@@ -61,9 +61,9 @@ export function ToolPage({ tool, content, locale, children, localizedRelatedTool
         <Header locale={locale as Locale} />
 
         <main id="main-content" className="flex-1" tabIndex={-1}>
-          <div className="max-w-7xl mx-auto px-4 pt-24 pb-8">
+          <div className="foliokit-tool-content max-w-7xl mx-auto px-4 pt-24 pb-8">
             {/* Breadcrumb Navigation */}
-            <nav aria-label="Breadcrumb" className="mb-4 flex items-center text-sm text-[hsl(var(--color-muted-foreground))] animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
+            <nav data-foliokit-breadcrumb aria-label="Breadcrumb" className="mb-4 flex items-center text-sm text-[hsl(var(--color-muted-foreground))] animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
               <Link
                 href={`/${locale}`}
                 className="flex items-center hover:text-[hsl(var(--color-primary))] transition-colors"
@@ -103,6 +103,8 @@ export function ToolPage({ tool, content, locale, children, localizedRelatedTool
               {children}
             </section>
 
+            <details className="foliokit-tool-help" open={process.env.NEXT_PUBLIC_ANDROID_BUILD !== 'true'}>
+              <summary>{t('tools.about')}</summary>
             {/* Description Section */}
             <DescriptionSection description={content.description} />
 
@@ -121,6 +123,7 @@ export function ToolPage({ tool, content, locale, children, localizedRelatedTool
               locale={locale}
               localizedRelatedTools={localizedRelatedTools}
             />
+            </details>
           </div>
         </main>
 

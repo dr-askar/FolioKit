@@ -32,6 +32,8 @@ See https://github.com/adobe-type-tools/cmap-resources
 <script src="pdf.js" type="module"></script>
 
     <link rel="stylesheet" href="viewer.css">
+    <link rel="stylesheet" href="foliokit-mobile.css">
+    <script src="foliokit-mobile.js" type="module"></script>
 
   <script src="viewer.js" type="module"></script>
   </head>
@@ -835,8 +837,10 @@ See https://github.com/adobe-type-tools/cmap-resources
             }
           } catch (e) {}
         }
-        document.addEventListener('mouseup', syncSelectionToClipboard);
-        document.addEventListener('touchend', syncSelectionToClipboard);
+        if (new URLSearchParams(location.search).get('foliokitMobile') !== '1') {
+          document.addEventListener('mouseup', syncSelectionToClipboard);
+          document.addEventListener('touchend', syncSelectionToClipboard);
+        }
 
         // PDFCraft bridge for importing extracted signatures
         window.pdfcraftImportSignature = async function(blob, name) {

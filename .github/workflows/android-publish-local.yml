@@ -100,6 +100,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: android-with-source
@@ -111,5 +112,6 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           BUILD_KIND: release
         run: |
-          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
+          python3 scripts/android-release-zip.py android-release
+          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. The ZIP contains the unchanged APK for an alternate phone download. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
           gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — universal Android" --notes-file release-notes.md

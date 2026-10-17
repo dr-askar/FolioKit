@@ -1,0 +1,67 @@
+/* Only enabled by FolioKit's Android reader; the upstream desktop viewer is unchanged. */
+html.foliokit-mobile { --toolbar-height: 44px; --foliokit-bottom: 52px; }
+.foliokit-mobile #toolbarContainer { display: none; }
+.foliokit-mobile #foliokit-topbar {
+  position: absolute; inset: 0 0 auto; height: 44px; z-index: 12;
+  display: flex; align-items: center; justify-content: space-between; gap: 0;
+  background: var(--toolbar-bg-color, #f9fafb); box-shadow: 0 1px 3px #0003;
+}
+.foliokit-mobile #foliokit-tools {
+  position: absolute; inset: auto 0 0; height: var(--foliokit-bottom); z-index: 12;
+  display: flex; align-items: center; justify-content: space-evenly; gap: 2px; padding-inline: 4px;
+  background: var(--toolbar-bg-color, #f9fafb); box-shadow: 0 -1px 4px #0003;
+}
+.foliokit-mobile #viewerContainer { inset: 44px 0 var(--foliokit-bottom); touch-action: pan-x pan-y; }
+.foliokit-mobile #sidebarContainer { inset-block: 44px var(--foliokit-bottom); max-width: 80vw; }
+.foliokit-mobile #outerContainer.sidebarOpen #viewerContainer { inset-inline-start: 0; }
+.foliokit-mobile #sidebarContainer { z-index: 15; }
+.foliokit-mobile .toolbarButton,
+.foliokit-mobile .foliokit-button { min-width: 44px; width: 44px; height: 44px; margin: 0; padding: 0; flex: 0 0 44px; touch-action: manipulation; }
+.foliokit-button { display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--main-color, #293548); cursor: pointer; }
+.foliokit-button svg { width: 23px; height: 23px; }
+.foliokit-mobile .toolbarButton::before { width: 24px; height: 24px; inset: 10px; }
+.foliokit-mobile #foliokit-tools .toolbarButton.toggled,
+.foliokit-mobile .foliokit-button[aria-pressed="true"],
+.foliokit-mobile .foliokit-button[aria-expanded="true"] { background: #0f766e; color: white; border-radius: 8px; }
+.foliokit-mobile #foliokit-tools .toolbarButton.toggled::before { background-color: white; }
+.foliokit-mobile button:disabled { opacity: .4; }
+.foliokit-mobile .foliokit-pages { display: flex; align-items: center; flex: 0 1 auto; min-width: 54px; font-size: 12px; }
+.foliokit-mobile #pageNumber { width: 34px; height: 40px; margin: 0; padding: 0 2px; box-sizing: border-box; font-size: 16px; text-align: center; }
+.foliokit-mobile #numPages { padding-inline: 2px; font-size: 12px; white-space: nowrap; }
+.foliokit-mobile #secondaryToolbar { top: 46px; max-height: calc(100dvh - 105px); overflow: auto; }
+.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer { min-height: 44px; }
+.foliokit-mobile #findbar { position: fixed; top: 46px; inset-inline: 4px; max-width: calc(100vw - 8px); z-index: 20; box-sizing: border-box; }
+.foliokit-mobile #findInput { min-width: 0; max-width: 50vw; font-size: 16px; height: 40px; }
+.foliokit-mobile .editorParamsToolbar { display: none !important; }
+.foliokit-mobile .editorParamsToolbar[data-mobile-open] {
+  display: block !important; position: fixed; inset: auto 8px 60px; width: auto; min-width: 0;
+  z-index: 30; max-height: min(52dvh, 360px); overflow: auto;
+  padding: 0 14px 12px; box-sizing: border-box; border-radius: 14px;
+  color: var(--main-color, #293548); background: var(--toolbar-bg-color, #f9fafb);
+  box-shadow: 0 4px 24px #0004; border: 1px solid #8885;
+}
+.foliokit-mobile .editorParamsToolbar::before, .foliokit-mobile .editorParamsToolbar::after { display: none; }
+.foliokit-mobile .foliokit-sheet-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; background: inherit; z-index: 1; }
+.foliokit-mobile .foliokit-done { min-width: 64px; min-height: 44px; border: 0; padding: 8px 10px; background: transparent; color: #0f766e; font-size: 15px; font-weight: 700; }
+.foliokit-mobile .editorParamsToolbarContainer { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.foliokit-mobile .editorParamsSetter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; }
+.foliokit-mobile .editorParamsLabel { font-size: 14px; }
+.foliokit-mobile .editorParamsSlider { flex: 1; min-width: 120px; height: 44px; accent-color: #0f766e; }
+.foliokit-mobile .editorParamsColor { width: 58px; height: 44px; padding: 3px; border: 1px solid #8888; background: transparent; }
+.foliokit-mobile #editorHighlightColorPicker .dropdown { display: flex; gap: 8px; justify-content: space-between; margin-block: 4px; }
+.foliokit-mobile #editorHighlightColorPicker button { min-width: 44px; min-height: 44px; }
+.foliokit-mobile #editorHighlightColorPicker .swatch { width: 28px; height: 28px; display: block; border-radius: 50%; }
+/* A highlighter stroke starts immediately over text as well as blank margins. */
+.foliokit-mobile[data-foliokit-mode="9"] .textLayer.highlighting span { pointer-events: none; }
+.foliokit-mobile[data-foliokit-mode="9"] .textLayer.highlighting,
+.foliokit-mobile[data-foliokit-mode="15"] .annotationEditorLayer.inkEditing { touch-action: none; }
+.foliokit-mobile #editorUndoBar { bottom: 58px; max-width: calc(100vw - 16px); }
+.foliokit-mobile .dialog { max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; }
+.foliokit-mobile #secondaryToolbar { position: fixed; inset-inline-end: 4px; min-width: 230px; max-width: calc(100vw - 8px); z-index: 25; }
+.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer > button { width: 100%; text-align: start; }
+.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer button > span { display: inline; margin-inline-start: 40px; }
+.foliokit-mobile body, .foliokit-mobile .editorParamsToolbar { font-family: system-ui, -apple-system, sans-serif; }
+.foliokit-mobile .pdfViewer.removePageBorders .page { margin-bottom: 8px; }
+.foliokit-mobile #mainContainer { min-width: 0; width: 100%; }
+.foliokit-mobile #findbar { padding: 8px; max-height: 50dvh; overflow: auto; }
+.foliokit-mobile #findbar .toolbarHorizontalGroup { flex-wrap: wrap; }

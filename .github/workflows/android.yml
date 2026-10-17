@@ -46,7 +46,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - run: npm ci
       - name: Focused Android checks
-        run: npm test -- src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+        run: npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
       - name: Restore private distribution key outside the checkout
         if: env.BUILD_KIND == 'release'
         env:
@@ -72,6 +72,18 @@ jobs:
       - name: Build developer debug APK
         if: env.BUILD_KIND == 'debug'
         run: npm run android:debug
+      - name: Mobile touch regression checks on the exported app
+        env:
+          FOLIOKIT_STATIC_DIR: out
+          FOLIOKIT_UI_OUTPUT: ${{ runner.temp }}/foliokit-mobile-proof
+        run: |
+          npx playwright install --with-deps chromium
+          BROWSER_EXECUTABLE="$(node -p "require('playwright').chromium.executablePath()")" npm run test:mobile
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-reader-evidence
+          path: ${{ runner.temp }}/foliokit-mobile-proof/
       - name: Verify package, signature and corresponding source
         run: |
           mkdir -p android-release
@@ -148,6 +160,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: android-with-source
@@ -159,5 +172,6 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
           BUILD_KIND: ${{ needs.android.outputs.kind }}
         run: |
-          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
+          python3 scripts/android-release-zip.py android-release
+          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. The ZIP contains the unchanged APK for an alternate phone download. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
           gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — universal Android" --notes-file release-notes.md

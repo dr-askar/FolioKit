@@ -51,7 +51,7 @@ export default async function LocaleLayout({
   const direction = localeConfig[locale as Locale]?.direction || 'ltr';
 
   const content = (
-      <div lang={locale} dir={direction} className={`${fontVariables} min-h-screen bg-background text-foreground antialiased font-sans`}>
+      <div data-foliokit-app={androidBuild ? "android" : undefined} lang={locale} dir={direction} className={`${fontVariables} min-h-screen bg-background text-foreground antialiased font-sans`}>
         <SkipLink targetId="main-content">Skip to main content</SkipLink>
         {children}
       </div>

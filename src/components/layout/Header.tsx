@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
   ];
 
   return (
-    <header
+    <header data-foliokit-header
       className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled
         ? 'bg-[hsl(var(--color-background))]/80 backdrop-blur-md border-b border-[hsl(var(--color-border))/0.5] shadow-sm'
         : 'bg-transparent border-transparent'

@@ -188,3 +188,35 @@ The alternate `FolioKit-0.1.2-verified.zip` release asset contains the same unch
 ### Android 17 check limitation
 
 The optional `android_api=37.0` input in `Android APK install compatibility` selects the official `android-37.0;google_apis;x86_64` image. [Run 39022411419](https://github.com/dr-askar/FolioKit/actions/runs/39022411419) downloaded and verified the official APK but timed out while booting that emulator; ADB remained offline and the APK installation script never ran. This is an infrastructure failure, not an APK rejection or a compatibility pass. API 37 compatibility remains unverified. Future optional API 37 checks have a bounded five-minute boot wait and a 15-minute job limit. Resolve the checksum mismatch on the affected phone before interpreting any installation result there.
+
+## Mobile reading and touch controls (0.1.3)
+
+On Android phones, opening a PDF in the reader fills the available app viewport. The filename/save/close row stays compact; PDF navigation and zoom use one top row, and Read, Highlight, Draw, Text, tool settings and Undo use one bottom row. Buttons have at least 44 CSS px touch targets. Tool settings open separately and close with **Done**, a tap on the document, or Android Back, while the selected annotation tool remains active. More actions, images/signatures (when enabled by PDF.js), Redo, search and thumbnails remain accessible through the viewer controls.
+
+Select **Read / scroll** (hand icon) to navigate the document. One-finger scrolling and two-finger pinch zoom are supported by PDF.js. Highlight mode draws a freehand marker immediately across text or page margins; Draw creates ink strokes. Color/width choices stay applied after closing settings. The Save button now serializes PDF.js annotation storage and exports that PDF through the existing Android share bridge instead of exporting the untouched input. Closing a marked document asks the user to confirm they have saved a copy; the share sheet cannot confirm that a receiving app persisted it. Android Back closes expanded settings/search/menu/sidebar first, then the document, with the same unsaved-change confirmation. The App plugin listener is scoped to the open reader and removed on exit.
+
+The Android shell also uses a smaller header, shorter tool introductions, two-column tool cards and collapsible tool reference material. All 17 languages and tools/engines are retained. Desktop/web layouts and the unflagged PDF.js viewer keep their normal toolbar. The mobile viewer adapter is enabled only with the Android reader's `foliokitMobile=1` URL parameter and a narrow/coarse-pointer viewport. New controls use labels for all 17 application locales, and PDF.js follows the selected app language.
+
+### Reproduce touch regression checks
+
+```sh
+npm ci
+npx playwright install chromium
+# Set BROWSER_EXECUTABLE to your installed Chromium binary if needed.
+BROWSER_EXECUTABLE=/path/to/chromium npm run test:mobile
+# After an Android frontend export, exercise the complete reader and Save button:
+FOLIOKIT_STATIC_DIR=out BROWSER_EXECUTABLE=/path/to/chromium npm run test:mobile
+```
+
+The script serves only local synthetic PDF fixtures and local assets. It sends actual Chromium touch events for marking, scrolling and pinching, verifies mode persistence with settings closed, color/width persistence, Undo/Redo, and reopens exported PDFs to check annotations and their appearances. It covers 320 px and 360 px widths, Arabic/RTL and landscape, and checks the desktop toolbar is retained. Set `FOLIOKIT_UI_OUTPUT` to choose where screenshots and exported fixture PDFs are written (default `/tmp/foliokit-mobile-proof`). These are browser touch simulations, not physical-device testing.
+
+Focused unit command, including save/export integrity, message origin/source checks, close cancellation and Android Back listener cleanup:
+
+```sh
+npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+npx tsc --noEmit
+```
+
+The signed 0.1.3 preview uses versionCode 4 and the existing FolioKit distribution key, allowing an in-place update from the signed 0.1.2 preview. The diagnostic helper pinned to the old 0.1.2 checksum is not an installer/validator for this new release; use the new release's checksums and ZIP transport.
+
+Published Android workflows now attach a verified ZIP containing the same APK and include its hash in SHA256SUMS.txt. Use that ZIP if direct APK transfer fails integrity checks. `scripts/android-release-zip.py` verifies the APK against the existing release checksum before packaging, checks ZIP CRC and rechecks the archived APK SHA-256. The source-build workflow also runs the touch regression suite against its actual exported Android frontend.

@@ -32,7 +32,7 @@ export const Footer: React.FC<FooterProps> = ({ locale }) => {
   };
 
   return (
-    <footer
+    <footer data-foliokit-footer
       className="w-full border-t border-[hsl(var(--color-border))] bg-[hsl(var(--color-background))] pt-16 pb-8"
       role="contentinfo"
     >

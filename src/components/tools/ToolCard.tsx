@@ -99,7 +99,7 @@ export function ToolCard({ tool, locale, className = '', localizedContent }: Too
             </p>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-[hsl(var(--color-border)/0.5)] flex items-center justify-between text-xs text-[hsl(var(--color-muted-foreground))]">
+          <div data-foliokit-card-meta className="mt-4 pt-4 border-t border-[hsl(var(--color-border)/0.5)] flex items-center justify-between text-xs text-[hsl(var(--color-muted-foreground))]">
             <span className="font-medium bg-[hsl(var(--color-secondary)/0.5)] px-2 py-1 rounded-md">
               {categoryName}
             </span>

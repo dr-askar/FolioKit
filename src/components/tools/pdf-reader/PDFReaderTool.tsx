@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { FileUploader } from '../FileUploader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -9,6 +9,7 @@ import { Download, X, CopyCheck, Printer, RefreshCw, CheckCircle2, AlertCircle, 
 import { saveBlobFile, isTauri, getSystemPrinters, printPdfFile, type SystemPrinter } from '@/lib/tauri-bridge';
 import { Modal } from '@/components/ui';
 import { withBasePath } from '@/lib/utils/path';
+import { isAndroidApp } from '@/lib/android-bridge';
 
 export interface PDFReaderToolProps {
     className?: string;
@@ -22,11 +23,13 @@ export interface PDFReaderToolProps {
 export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
     const t = useTranslations('common');
     const tTools = useTranslations('tools');
+    const locale = useLocale();
+    const androidApp = process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true';
 
     const [file, setFile] = useState<File | null>(null);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [autoCopyEnabled, setAutoCopyEnabled] = useState(true);
+    const [autoCopyEnabled, setAutoCopyEnabled] = useState(!androidApp);
     const [copiedNotify, setCopiedNotify] = useState<string | null>(null);
 
     // Native printing state
@@ -110,11 +113,29 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
         };
     }, [pdfUrl]);
 
-    const handleDownload = useCallback(() => {
-        if (file) {
-            saveBlobFile(file, file.name);
+    const handleDownload = useCallback(async () => {
+        if (!file) return;
+        try {
+            const viewerWindow = iframeRef.current?.contentWindow as (Window & {
+                PDFViewerApplication?: { pdfDocument?: { saveDocument: () => Promise<Uint8Array> } };
+            }) | null;
+            const pdfDocument = viewerWindow?.PDFViewerApplication?.pdfDocument;
+            const data = pdfDocument ? await pdfDocument.saveDocument() : null;
+            const blob = data ? new Blob([new Uint8Array(data).buffer], { type: 'application/pdf' }) : file;
+            await saveBlobFile(blob, file.name);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not save the annotated PDF.');
         }
     }, [file]);
+
+    useEffect(() => {
+        const saveFromViewer = (event: MessageEvent) => {
+            if (event.source !== iframeRef.current?.contentWindow || event.origin !== window.location.origin) return;
+            if (event.data?.type === 'foliokit-reader-save-requested') void handleDownload();
+        };
+        window.addEventListener('message', saveFromViewer);
+        return () => window.removeEventListener('message', saveFromViewer);
+    }, [handleDownload]);
 
     const loadPrinters = useCallback(async () => {
         setIsLoadingPrinters(true);
@@ -203,6 +224,15 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
     }, [file, selectedPrinter]);
 
     const handleReset = useCallback(() => {
+        const viewer = iframeRef.current?.contentWindow as (Window & {
+            PDFViewerApplication?: { _hasAnnotationEditors?: boolean; _annotationStorageModified?: boolean; pdfDocument?: { annotationStorage?: { resetModified?: () => void } } };
+            foliokitReaderLabels?: { unsaved?: string };
+        }) | null;
+        if (androidApp && (viewer?.PDFViewerApplication?._hasAnnotationEditors || viewer?.PDFViewerApplication?._annotationStorageModified)) {
+            const question = viewer?.foliokitReaderLabels?.unsaved || 'Close the PDF? Make sure you have saved a copy with your changes first.';
+            if (!window.confirm(question)) return;
+            viewer?.PDFViewerApplication?.pdfDocument?.annotationStorage?.resetModified?.();
+        }
         if (pdfUrl) {
             URL.revokeObjectURL(pdfUrl);
         }
@@ -212,12 +242,27 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
         setCopiedNotify(null);
         setIsPrintModalOpen(false);
         setPrintStatus(null);
-    }, [pdfUrl]);
+    }, [pdfUrl, androidApp]);
 
     const hasFile = file !== null;
 
+    useEffect(() => {
+        if (!androidApp || !hasFile || !isAndroidApp()) return;
+        let disposed = false;
+        let remove: (() => Promise<void>) | undefined;
+        import('@capacitor/app').then(async ({ App }) => {
+            const handle = await App.addListener('backButton', () => {
+                const viewer = iframeRef.current?.contentWindow as (Window & { foliokitReaderClosePanel?: () => boolean }) | null;
+                if (!viewer?.foliokitReaderClosePanel?.()) handleReset();
+            });
+            if (disposed) await handle.remove();
+            else remove = () => handle.remove();
+        }).catch(() => { /* The visible Close button remains available if the native listener fails. */ });
+        return () => { disposed = true; void remove?.(); };
+    }, [androidApp, hasFile, handleReset]);
+
     return (
-        <div className={`space-y-4 ${className}`.trim()} ref={containerRef}>
+        <div className={`${androidApp && hasFile ? 'pdf-reader-workspace' : 'space-y-4'} ${className}`.trim()} ref={containerRef}>
             {!hasFile && (
                 <FileUploader
                     accept={['application/pdf', '.pdf']}
@@ -239,9 +284,9 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
             {hasFile && pdfUrl && (
                 <>
                     {/* Simple Header with File Info */}
-                    <Card variant="outlined" className="!p-3">
+                    <Card variant="outlined" className="pdf-reader-filebar !p-3">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                            <div className="pdf-reader-filename flex items-center gap-3">
                                 <span className="text-sm font-medium text-[hsl(var(--color-foreground))]">
                                     {file.name}
                                 </span>
@@ -255,7 +300,7 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
                                     variant={autoCopyEnabled ? "secondary" : "ghost"}
                                     size="sm"
                                     onClick={() => setAutoCopyEnabled(!autoCopyEnabled)}
-                                    className="text-xs h-7 gap-1"
+                                    className="pdf-reader-desktop-action text-xs h-7 gap-1"
                                     title={autoCopyEnabled ? "划选自动存入剪贴板 (已开启)" : "划选自动存入剪贴板 (已关闭)"}
                                 >
                                     <CopyCheck className={`w-3.5 h-3.5 ${autoCopyEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -266,14 +311,15 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
                                     variant="ghost"
                                     size="sm"
                                     onClick={handleTriggerPrint}
+                                    className="pdf-reader-desktop-action"
                                     title="打印 (Ctrl+P)"
                                 >
                                     <Printer className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={handleDownload} title="Download">
+                                <Button variant="ghost" size="sm" onClick={handleDownload} title={t('buttons.save')} aria-label={t('buttons.save')}>
                                     <Download className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={handleReset} title="Close">
+                                <Button variant="ghost" size="sm" onClick={handleReset} title={t('buttons.close')} aria-label={t('buttons.close')}>
                                     <X className="w-4 h-4" />
                                 </Button>
                             </div>
@@ -290,12 +336,11 @@ export function PDFReaderTool({ className = '' }: PDFReaderToolProps) {
 
                     {/* PDF Viewer - Using full-featured PDF.js Viewer */}
                     <div
-                        className="relative bg-gray-100 rounded-[var(--radius-md)] overflow-hidden"
-                        style={{ height: '80vh', minHeight: '600px' }}
+                        className="pdf-reader-document relative bg-gray-100 rounded-[var(--radius-md)] overflow-hidden"
                     >
                         <iframe
                             ref={iframeRef}
-                            src={withBasePath(`/pdfjs-viewer/viewer.html?file=${encodeURIComponent(pdfUrl)}`)}
+                            src={withBasePath(`/pdfjs-viewer/viewer.html?file=${encodeURIComponent(pdfUrl)}${androidApp ? `&foliokitMobile=1&locale=${encodeURIComponent(locale)}` : ""}`)}
                             onLoad={handleIframeLoad}
                             className="w-full h-full absolute inset-0 border-0"
                             title={file.name}

@@ -82,7 +82,7 @@ export default function HomePageClient({ locale, localizedToolContent }: HomePag
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[hsl(var(--color-background))]">
+    <div data-foliokit-home className="min-h-screen flex flex-col bg-[hsl(var(--color-background))]">
       <Header locale={locale} />
 
       <main id="main-content" className="flex-1 relative" tabIndex={-1}>
@@ -101,7 +101,7 @@ export default function HomePageClient({ locale, localizedToolContent }: HomePag
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
               {/* Brand Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-[hsl(var(--color-background)/0.8)] border border-[hsl(var(--color-primary)/0.2)] shadow-sm backdrop-blur-md transition-all hover:bg-[hsl(var(--color-background))]">
+              <div data-foliokit-desktop-promo className="inline-flex items-center gap-2 px-4 py-2 mb-6 rounded-full bg-[hsl(var(--color-background)/0.8)] border border-[hsl(var(--color-primary)/0.2)] shadow-sm backdrop-blur-md transition-all hover:bg-[hsl(var(--color-background))]">
                 <Sparkles className="h-4 w-4 text-[hsl(var(--color-primary))]" aria-hidden="true" />
                 <span className="text-sm font-medium text-[hsl(var(--color-primary))]">
                   {t('common.brand')}
@@ -121,7 +121,7 @@ export default function HomePageClient({ locale, localizedToolContent }: HomePag
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
-                <Link href={`/${locale}/studio`}>
+                <Link data-foliokit-desktop-promo href={`/${locale}/studio`}>
                   <Button
                     variant="primary"
                     size="lg"
@@ -144,7 +144,7 @@ export default function HomePageClient({ locale, localizedToolContent }: HomePag
                     <span>{t('home.hero.cta')}</span>
                   </Button>
                 </Link>
-                <div className="flex items-center gap-2 text-sm text-[hsl(var(--color-muted-foreground))] bg-[hsl(var(--color-background)/0.5)] px-4 py-2 rounded-full border border-[hsl(var(--color-border))] backdrop-blur-sm">
+                <div data-foliokit-desktop-promo className="flex items-center gap-2 text-sm text-[hsl(var(--color-muted-foreground))] bg-[hsl(var(--color-background)/0.5)] px-4 py-2 rounded-full border border-[hsl(var(--color-border))] backdrop-blur-sm">
                   <Lock className="h-4 w-4 text-green-500" aria-hidden="true" />
                   <span>{t('common.footer.privacyBadge')}</span>
                 </div>
