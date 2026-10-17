@@ -2,7 +2,7 @@
 
 Open-source Android PDF toolkit, adapted from PDFCraft by Mohammad Askar.
 
-- [Download Android previews](https://github.com/dr-askar/FolioKit/releases)
+- [Download Android previews](https://github.com/dr-askar/FolioKit/releases) — 0.1.1 preview: **213 MiB**, 62.3% smaller than the first APK; all 17 languages retained.
 - [Android build, size analysis, testing and release instructions](ANDROID.md)
 - [Contributor and provenance information](CONTRIBUTORS.md)
 

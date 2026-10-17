@@ -83,3 +83,20 @@ Debug builds use a debug signing key. Different build machines can produce diffe
 FolioKit repository: https://github.com/dr-askar/FolioKit. Original project: https://github.com/PDFCraftTool/pdfcraft. Android contributor: Mohammad Askar (dr-askar). All derivative code remains AGPL-3.0; inherited notices remain intact. Original desktop/web/Docker publishing workflows are restricted to the upstream repository so pushing this Android project does not automatically publish unrelated products.
 
 Automated build checks are not a physical-device test or a completed legal audit. The 230 npm package notices are included, but bundled WASM/Python wheels/fonts and native transitive dependencies still need a full license/source-availability review before treating this as production distribution. Known device-testing requirements are listed above. A successful APK signature check proves package integrity, not tool correctness on every WebView.
+
+## Measured 0.1.1 preview result (2026-10-17)
+
+The APK built from source commit `c3e7ddf21ce9822b074c00c63626df82465b6432` is **223,517,838 bytes (213.16 MiB)**, compared with the initial **593,661,002-byte (566.16 MiB)** APK: a **62.3% reduction**. All 17 languages and required Office/PDF engines are still packaged.
+
+| Component | New compressed contribution |
+| --- | ---: |
+| LibreOffice | 83.22 MiB |
+| PyMuPDF/Python | 47.16 MiB |
+| Shared translation JSON files (all languages) | 0.86 MiB |
+| Locale routes (all 17 languages) | about 34 MiB |
+| Chinese PDF font | 13.04 MiB |
+| Native Android code/resources | 4.43 MiB |
+
+The remaining size is largely real bundled engines. Getting below 100 MB would require a separate product decision, such as omitting engines/tools or making them optional downloads, rather than another safe duplicate-file cleanup.
+
+Validation: 23 focused tests passed, TypeScript passed, the production Android frontend and Gradle APK build succeeded, and Android apksigner verified the package. A Chromium browser smoke test loaded Arabic with RTL, loaded the English merge tool, imported two one-page PDFs, and downloaded a valid two-page PDF without uncaught JavaScript/hydration errors. This was **not** a physical-device/emulator test. See [the recorded validation](docs/android-v0.1.1-validation.md), the [preview release](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview), and its attached `apk-report.json` for exact provenance and component sizes.
