@@ -1,6 +1,11 @@
 name: Android debug and corresponding source
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Optional new prerelease tag, for example v0.1.1-preview (empty = artifact only)'
+        required: false
+        default: ''
   pull_request:
     paths: ['android/**', 'src/**', 'public/**', 'scripts/**', 'package*.json', 'capacitor.config.ts', '.github/workflows/android.yml']
 permissions:
@@ -20,17 +25,39 @@ jobs:
           java-version: 21
       - uses: android-actions/setup-android@v3
       - run: npm ci
+      - name: Test Android translations, exports, packaging and existing bridge
+        run: npm test -- src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
       - run: npm run android:debug
-        env:
-          DISABLE_UPDATE_CHECK: 'true'
       - name: Bundle complete corresponding source and instructions
         run: |
           mkdir -p android-release
           git archive --format=tar.gz --output=android-release/corresponding-source.tar.gz HEAD
-          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/
-          cp ANDROID.md LICENSE CONTRIBUTORS.md android-release/
+          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/FolioKit-debug.apk
+          cp ANDROID.md LICENSE CONTRIBUTORS.md out/source-info.json out/third-party-notices.json android-release/
           git rev-parse HEAD > android-release/REVISION.txt
+          python3 scripts/android-apk-report.py android-release/FolioKit-debug.apk > android-release/apk-report.json
+          cd android-release
+          sha256sum FolioKit-debug.apk corresponding-source.tar.gz > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: android-debug-with-source
           path: android-release/
+  publish-preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+    needs: android
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-debug-with-source
+          path: android-release
+      - name: Publish debug preview with exact corresponding source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          printf '%s\n' 'FolioKit Android debug preview. Not a store release; physical-device testing remains required.' '' 'AGPL-3.0. Complete corresponding source, build instructions, checksums and size report are attached. See ANDROID.md for experimental Office/WASM features and license review limitations.' > release-notes.md
+          gh release create "$RELEASE_TAG" android-release/* --target "$GITHUB_SHA" --prerelease --title "FolioKit $RELEASE_TAG — Android preview" --notes-file release-notes.md

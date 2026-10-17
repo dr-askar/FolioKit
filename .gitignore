@@ -96,3 +96,6 @@ android/local.properties
 # Generated release provenance and npm notices
 public/source-info.json
 public/third-party-notices.json
+
+# Shared Android translations generated during packaging
+public/android-messages/

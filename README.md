@@ -1,5 +1,12 @@
 # FolioKit
 
+Open-source Android PDF toolkit, adapted from PDFCraft by Mohammad Askar.
+
+- [Download Android previews](https://github.com/dr-askar/FolioKit/releases)
+- [Android build, size analysis, testing and release instructions](ANDROID.md)
+- [Contributor and provenance information](CONTRIBUTORS.md)
+
+
 > **Android adaptation by Mohammad Askar ([dr-askar](https://github.com/dr-askar)).**
 > Independent fork of [PDFCraft](https://github.com/PDFCraftTool/pdfcraft), under AGPL-3.0.
 > See [Android build and release instructions](ANDROID.md) and [contributors](CONTRIBUTORS.md).

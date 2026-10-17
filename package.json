@@ -17,11 +17,12 @@
     "predev": "node scripts/decompress-wasm.mjs public && node scripts/ensure-pdfjs-viewer-js.js public",
     "postinstall": "node scripts/sync-pdfjs-workers.js && node scripts/decompress-wasm.mjs public && node scripts/ensure-pdfjs-viewer-js.js public",
     "postbuild": "node scripts/decompress-wasm.mjs && node scripts/chunk-assets.mjs && node scripts/ensure-pdfjs-viewer-js.js out",
-    "android:sync": "npm run android:build && npm run postbuild && npm run android:notices && cap sync android",
+    "android:sync": "npm run android:build && npm run android:prepare && npm run android:notices && cap sync android",
     "android:open": "cap open android",
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "android:notices": "node scripts/android-notices.mjs",
-    "android:build": "node scripts/android-build.mjs"
+    "android:build": "node scripts/android-build.mjs",
+    "android:prepare": "node scripts/android-prepare.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.9",

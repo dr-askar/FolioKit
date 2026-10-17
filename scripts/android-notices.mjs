@@ -16,7 +16,7 @@ for (const [location, info] of Object.entries(lock.packages)) {
     notices: files.filter(name => fs.statSync(path.join(dir, name)).isFile()).map(name => ({ file: name, text: fs.readFileSync(path.join(dir, name), 'utf8') })) });
 }
 const revision = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-const repository = process.env.GITHUB_REPOSITORY;
+const repository = process.env.GITHUB_REPOSITORY || 'dr-askar/FolioKit';
 const source = repository ? `https://github.com/${repository}/tree/${revision}` : null;
 const metadata = { revision, source, modified: execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim().length > 0,
   instructions: 'See ANDROID.md. Distribute the complete corresponding source alongside the APK.', contributor: 'Mohammad Askar (dr-askar)' };

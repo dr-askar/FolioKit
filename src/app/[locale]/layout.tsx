@@ -1,4 +1,5 @@
 import type { Viewport } from 'next';
+import { AndroidIntlProvider } from '@/components/android/AndroidIntlProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -43,17 +44,20 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   // Get messages for the locale
-  const messages = await getMessages();
+  const androidBuild = process.env.ANDROID_BUILD === 'true';
+  const messages = androidBuild ? undefined : await getMessages();
 
   // Get direction for the locale
   const direction = localeConfig[locale as Locale]?.direction || 'ltr';
 
-  return (
-    <NextIntlClientProvider messages={messages}>
+  const content = (
       <div lang={locale} dir={direction} className={`${fontVariables} min-h-screen bg-background text-foreground antialiased font-sans`}>
         <SkipLink targetId="main-content">Skip to main content</SkipLink>
         {children}
       </div>
-    </NextIntlClientProvider>
   );
+
+  return androidBuild
+    ? <AndroidIntlProvider locale={locale}>{content}</AndroidIntlProvider>
+    : <NextIntlClientProvider messages={messages}>{content}</NextIntlClientProvider>;
 }
