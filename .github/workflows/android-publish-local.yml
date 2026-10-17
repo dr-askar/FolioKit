@@ -1,0 +1,115 @@
+name: Verify and publish locally signed Android package
+on:
+  workflow_dispatch:
+    inputs:
+      delivery_ref:
+        description: 'Temporary delivery branch containing public assets only'
+        required: true
+      bundle_sha256:
+        description: 'SHA-256 of the complete delivery tar archive'
+        required: true
+      release_tag:
+        description: 'New prerelease tag'
+        required: true
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.delivery_ref }}
+          path: delivery
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Verify transport and signed package
+        env:
+          EXPECTED_SHA: ${{ inputs.bundle_sha256 }}
+        run: |
+          cat delivery/bundle.part-* > "$RUNNER_TEMP/bundle.tar"
+          echo "$EXPECTED_SHA  $RUNNER_TEMP/bundle.tar" | sha256sum -c -
+          mkdir android-release
+          tar -xf "$RUNNER_TEMP/bundle.tar" -C android-release
+          cd android-release
+          sha256sum -c SHA256SUMS.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs FolioKit-universal.apk
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 FolioKit-universal.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree FolioKit-universal.apk AndroidManifest.xml > manifest-info.txt
+          python3 - <<'PYCODE'
+          import re
+          from pathlib import Path
+          manifest = Path('manifest-info.txt').read_text()
+          assert not re.search(r'android:(?:testOnly|debuggable).*0xffffffff', manifest)
+          PYCODE
+          cd ..
+          python3 scripts/android-apk-report.py android-release/FolioKit-universal.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-with-source
+          path: android-release/
+          compression-level: 0
+  install:
+    needs: android
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [23, 35, 36]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-with-source
+          path: android-release
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash scripts/android-install-check.sh "$(find android-release -name '*.apk' -print -quit)" install-check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: install-check-api-${{ matrix.api }}
+          path: install-check/
+  publish-preview:
+    if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+    needs: [android, install]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-with-source
+          path: android-release
+      - name: Publish only after installation and launch checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          BUILD_KIND: release
+        run: |
+          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
+          gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — universal Android" --notes-file release-notes.md
