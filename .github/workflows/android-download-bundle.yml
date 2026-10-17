@@ -1,0 +1,44 @@
+name: Package verified FolioKit download as ZIP
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the immutable official APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir download
+          gh release download v0.1.2-preview --pattern FolioKit-universal.apk --dir download
+      - name: Verify original bytes and create a CRC-protected transport archive
+        run: |
+          python3 - <<'PY'
+          import hashlib, zipfile
+          from pathlib import Path
+          folder=Path('download')
+          apk=folder/'FolioKit-universal.apk'
+          expected='f246543f4c1baa0a13e1d53b21a266b0ae8c01d3ef9b0d84e26f2a7432659026'
+          assert apk.stat().st_size==203354390
+          assert hashlib.sha256(apk.read_bytes()).hexdigest()==expected
+          archive=Path('FolioKit-0.1.2-verified.zip')
+          with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_STORED) as z:
+              z.write(apk,apk.name)
+              z.writestr('SHA256SUMS.txt',expected+'  FolioKit-universal.apk\n')
+              z.writestr('README.txt','FolioKit 0.1.2 universal preview. This ZIP contains the unchanged official APK, not a new app version.\nExtract the ZIP with the phone file manager, then choose the extracted APK in FolioKit Install Check.\nThe helper must show Download verified before installation. A matching file does not guarantee every device is compatible.\nSource, AGPL-3.0 license, contributor notices and build instructions: https://github.com/dr-askar/FolioKit/releases/tag/v0.1.2-preview\nAndroid contributor: Mohammad Askar (dr-askar); adapted from PDFCraft.\n')
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None
+              assert hashlib.sha256(z.read(apk.name)).hexdigest()==expected
+          digest=hashlib.sha256(archive.read_bytes()).hexdigest()
+          Path('FolioKit-0.1.2-verified.zip.sha256').write_text(digest+'  '+archive.name+'\n')
+          print('Unchanged APK verified:',expected)
+          print('ZIP size:',archive.stat().st_size,'SHA-256:',digest)
+          PY
+      - name: Attach verified alternate download without replacing existing assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload v0.1.2-preview FolioKit-0.1.2-verified.zip FolioKit-0.1.2-verified.zip.sha256
