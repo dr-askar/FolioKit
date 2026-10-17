@@ -1,5 +1,6 @@
 'use client';
 
+import { saveBlobFile } from '@/lib/tauri-bridge';
 import React, { memo, useState } from 'react';
 import { Handle, Position, useReactFlow } from 'reactflow';
 import { ToolNodeData } from '@/types/workflow';
@@ -329,22 +330,15 @@ const ToolNode = memo(({ id, data, selected = false, isConnectable = true }: Too
                 <div className="mt-2.5">
                     <button
                         type="button"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                             e.stopPropagation();
-                            data.outputFiles?.forEach((file, index) => {
+                            for (const [index, file] of (data.outputFiles || []).entries()) {
                                 const blob = file instanceof Blob ? file : file.blob;
                                 const originalName = file instanceof Blob ? undefined : file.filename;
                                 const fallbackExt = data.toolId === 'download-zip' ? 'zip' : 'pdf';
                                 const defaultName = originalName || (data.settings?.filename as string) || `workflow-output-${index + 1}.${fallbackExt}`;
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = defaultName;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                setTimeout(() => URL.revokeObjectURL(url), 5000);
-                            });
+                                await saveBlobFile(blob, defaultName);
+                            }
                         }}
                         className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-semibold shadow-sm transition-all"
                     >

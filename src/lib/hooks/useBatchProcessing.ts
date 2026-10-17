@@ -186,25 +186,13 @@ export function useBatchProcessing(options: BatchProcessingOptions = {}): UseBat
     setIsProcessing(false);
   }, []);
 
-  const downloadAll = useCallback((filenamePrefix = 'processed') => {
+  const downloadAll = useCallback(async (filenamePrefix = 'processed') => {
     const completedFiles = files.filter((f) => f.status === 'completed' && f.result);
-    
-    completedFiles.forEach((file, index) => {
-      if (!file.result) return;
-      
-      const url = URL.createObjectURL(file.result);
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Generate filename
+    for (const [index, file] of completedFiles.entries()) {
+      if (!file.result) continue;
       const originalName = file.file.name.replace(/\.[^/.]+$/, '');
-      a.download = `${filenamePrefix}_${originalName}_${index + 1}.pdf`;
-      
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
+      await saveBlobFile(file.result, `${filenamePrefix}_${originalName}_${index + 1}.pdf`);
+    }
   }, [files]);
 
   const downloadAsZip = useCallback(async (zipFilename = 'batch_processed.zip') => {

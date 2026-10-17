@@ -1,3 +1,8 @@
+> **Android adaptation by Mohammad Askar ([dr-askar](https://github.com/dr-askar)).**
+> Independent fork of [PDFCraft](https://github.com/PDFCraftTool/pdfcraft), under AGPL-3.0.
+> See [Android build and release instructions](ANDROID.md) and [contributors](CONTRIBUTORS.md).
+> Modified starting 2026-10-17: Android packaging, export bridge, license notices and CI.
+
 # PDFCraft
 
 <div align="center">

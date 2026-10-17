@@ -176,6 +176,9 @@ export const Footer: React.FC<FooterProps> = ({ locale }) => {
           </div>
         </div>
 
+        <div className="py-4 text-sm">
+          <a href="/open-source.html">Open source, license &amp; contributors</a>
+        </div>
         {/* Copyright */}
         <div className="pt-8 border-t border-[hsl(var(--color-border))] flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-[hsl(var(--color-muted-foreground))]">

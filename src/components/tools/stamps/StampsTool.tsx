@@ -1,5 +1,7 @@
 'use client';
 
+import { isAndroidApp } from '@/lib/android-bridge';
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { FileUploader } from '../FileUploader';
@@ -84,7 +86,7 @@ export function StampsTool({ className = '' }: StampsToolProps) {
 
       const downloadFromParent = async (href: string, name: string) => {
         try {
-          if (isTauri()) {
+          if (isTauri() || isAndroidApp()) {
             const res = await fetch(href);
             const blob = await res.blob();
             await saveBlobFile(blob, name || 'annotated.pdf');

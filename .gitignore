@@ -86,3 +86,13 @@ public/libreoffice-wasm/soffice.data.bin
 src-tauri/target/
 
 yarn.lock
+# Android local configuration and generated output
+android/.gradle/
+android/**/build/
+android/local.properties
+*.jks
+*.keystore
+
+# Generated release provenance and npm notices
+public/source-info.json
+public/third-party-notices.json

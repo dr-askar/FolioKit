@@ -1,3 +1,4 @@
+import { isAndroidApp, exportAndroidFile } from './android-bridge';
 /**
  * Tauri Bridge
  * Provides a unified interface for file operations in both Tauri and Browser environments.
@@ -139,6 +140,10 @@ export async function readFileBytes(path: string): Promise<Uint8Array> {
 }
 
 export async function writeFileBytes(path: string, data: Uint8Array): Promise<void> {
+  if (isAndroidApp()) {
+    await exportAndroidFile(data, path);
+    return;
+  }
   if (isTauri()) {
     try {
       const invoke = await getTauriInvoke();
@@ -185,6 +190,8 @@ export async function saveBlobFile(
   suggestedName: string,
   filters?: FileFilter[]
 ): Promise<boolean> {
+  if (isAndroidApp()) return exportAndroidFile(fileData, suggestedName);
+
   const activeFilters =
     filters && filters.length > 0 ? filters : getFiltersForFilename(suggestedName);
 

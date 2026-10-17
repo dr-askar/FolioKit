@@ -51,6 +51,7 @@ export const LOCALE_CONFIG = {
   'zh-TW': { name: 'Chinese (Traditional)', nativeName: '繁體中文', direction: 'ltr' as const },
   pt: { name: 'Portuguese', nativeName: 'Português', direction: 'ltr' as const },
   ar: { name: 'Arabic', nativeName: 'العربية', direction: 'rtl' as const },
+  he: { name: 'Hebrew', nativeName: 'עברית', direction: 'rtl' as const },
   it: { name: 'Italian', nativeName: 'Italiano', direction: 'ltr' as const },
   id: { name: 'Indonesian', nativeName: 'Bahasa Indonesia', direction: 'ltr' as const },
   vi: { name: 'Vietnamese', nativeName: 'Tiếng Việt', direction: 'ltr' as const },

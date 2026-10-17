@@ -33,9 +33,13 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? englishMessages 
     : mergeWithFallback(localeMessages, englishMessages);
 
+  const brandedMessages = process.env.ANDROID_BUILD === 'true'
+    ? JSON.parse(JSON.stringify(messages).replaceAll('PDFCraft', 'FolioKit'))
+    : messages;
+
   return {
     locale,
-    messages,
+    messages: brandedMessages,
     // Configure time zone and formats
     timeZone: 'UTC',
     now: new Date(),

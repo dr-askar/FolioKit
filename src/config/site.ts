@@ -2,7 +2,7 @@
  * Site configuration
  */
 export const siteConfig = {
-  name: 'PDFCraft',
+  name: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 'FolioKit' : 'PDFCraft',
   description: 'Professional PDF Tools - Free, Private & Browser-Based. Merge, split, compress, convert, and edit PDF files online without uploading to servers.',
   url: 'https://pdfcraft.devtoolcafe.com',
   ogImage: '/images/og-image.png',

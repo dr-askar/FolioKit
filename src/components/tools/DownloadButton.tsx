@@ -1,5 +1,7 @@
 'use client';
 
+import { isAndroidApp } from '@/lib/android-bridge';
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button, type ButtonProps } from '../ui/Button';
@@ -102,7 +104,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     const safeFilename = sanitizeFilename(filename, 'download.pdf');
 
     // Desktop (Tauri) environment: prompt native Save File dialog and write directly to disk
-    if (isTauri()) {
+    if (isTauri() || isAndroidApp()) {
       try {
         const saved = await saveBlobFile(file, safeFilename);
         if (saved) {
