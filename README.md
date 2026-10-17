@@ -10,6 +10,8 @@ Download the APK attached to a release using your phone. Allow installation from
 
 The universal APK has no CPU architecture restrictions. Android 6.0 (API 23) or newer and an updated Android System WebView are required. Device policies, available storage and WebView compatibility can still affect installation or operation. A universal APK cannot guarantee support for every phone.
 
+If Android only says **“App not installed”**, the separate [Install Check helper](https://github.com/dr-askar/FolioKit/releases/tag/install-check-v0.1.0) can verify the downloaded 0.1.2 APK and display Android’s actual installation result. It is a 17 KB diagnostic utility, not the PDF application. [Instructions and source](tools/install-check/README.md).
+
 ## What is included
 
 - PDF merging, splitting, page organization, annotation and conversion tools inherited from PDFCraft.
