@@ -22,3 +22,10 @@ These are installation/launch checks, not physical-device or full PDF/Office fea
 ## Reproducibility and key custody
 
 The local APK's embedded source-info matches the attached source-info and REVISION. Selected native build/source/license files in the archive were checked against the recorded Git revision. No keystore is in the source archive. Public assets were transported through a temporary branch and published by Actions after verification, because connected release uploads and repository Secrets writes were unavailable. The private owner signing backup is outside git and must remain private; future updates require this same key and a higher versionCode.
+
+
+## Follow-up download integrity and Android 17
+
+The affected phone's report identified Android 17/API 37 and a same-length APK with a different SHA-256. Fresh public downloads and GitHub's asset digest still match the official APK checksum above. The alternate [verified ZIP](https://github.com/dr-askar/FolioKit/releases/download/v0.1.2-preview/FolioKit-0.1.2-verified.zip) is 203,355,355 bytes with SHA-256 `5e2c116f4e1f8ed0dc5ab10c6066d72439afd41429cc9a5353cabe81ace13dfd`; a fresh download, ZIP CRC and the extracted APK's original SHA-256 were verified. It contains the same APK, not a changed application. [Packaging run](https://github.com/dr-askar/FolioKit/actions/runs/39022377760) succeeded.
+
+The attempted [Android 17 check](https://github.com/dr-askar/FolioKit/actions/runs/39022411419) failed before installation because the emulator did not boot and ADB stayed offline. This does not establish whether the APK installs on API 37. No cause of the phone's differing bytes has been established; the helper must verify a matching APK before attempting installation. Free-space data from the report does not suggest a storage shortage.

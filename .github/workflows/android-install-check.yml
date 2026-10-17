@@ -16,6 +16,7 @@ permissions:
 jobs:
   install:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -56,6 +57,7 @@ jobs:
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
+          emulator-boot-timeout: ${{ matrix.api == '37.0' && 300 || 600 }}
           arch: x86_64
           target: ${{ matrix.api == '37.0' && 'google_apis' || 'default' }}
           disk-size: 4096M
