@@ -17,9 +17,11 @@ sleep 5
 adb shell pidof io.github.draskar.foliokit > "$output/process.txt"
 adb logcat -d > "$output/logcat.txt"
 adb shell dumpsys activity activities > "$output/activity.txt"
-adb shell uiautomator dump /sdcard/foliokit-ui.xml
-adb pull /sdcard/foliokit-ui.xml "$output/ui.xml"
-adb exec-out screencap -p > "$output/screenshot.png"
+# Screen/UI capture is diagnostic, not a package-install pass/fail criterion.
+adb exec-out screencap -p > "$output/screenshot.png" || true
+if adb shell uiautomator dump /sdcard/foliokit-ui.xml > "$output/ui-dump-result.txt" 2>&1; then
+  adb pull /sdcard/foliokit-ui.xml "$output/ui.xml" || true
+fi
 python3 - "$output" <<'PY'
 import sys
 from pathlib import Path

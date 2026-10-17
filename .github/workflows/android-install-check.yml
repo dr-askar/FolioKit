@@ -5,7 +5,7 @@ on:
       release_tag:
         description: 'Published FolioKit release to install'
         required: true
-        default: 'v0.1.1-preview.1'
+        default: 'v0.1.2-preview'
 permissions:
   contents: read
 jobs:
@@ -21,21 +21,28 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - name: Download the exact public release APK
+      - name: Download and verify the exact public or draft release APK
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p install-check
-          curl --fail --location --retry 3 "https://github.com/dr-askar/FolioKit/releases/download/$RELEASE_TAG/FolioKit-debug.apk" --output install-check/FolioKit.apk
-          curl --fail --location --retry 3 "https://github.com/dr-askar/FolioKit/releases/download/$RELEASE_TAG/SHA256SUMS.txt" --output install-check/release-checksums.txt
-          python3 - <<'PY'
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.apk' --dir install-check
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS.txt --dir install-check
+          python3 - <<'PYIN'
           import hashlib
           from pathlib import Path
-          expected = next(line.split()[0] for line in Path('install-check/release-checksums.txt').read_text().splitlines() if line.split()[-1] == 'FolioKit-debug.apk')
-          actual = hashlib.sha256(Path('install-check/FolioKit.apk').read_bytes()).hexdigest()
+          apks = list(Path('install-check').glob('*.apk'))
+          assert len(apks) == 1, 'Release must contain exactly one universal APK'
+          apk = apks[0]
+          checksums = Path('install-check/SHA256SUMS.txt').read_text()
+          expected = next(line.split()[0] for line in checksums.splitlines() if line.split()[-1] == apk.name)
+          actual = hashlib.sha256(apk.read_bytes()).hexdigest()
           assert actual == expected, (actual, expected)
+          if apk.name != 'FolioKit.apk':
+              apk.rename('install-check/FolioKit.apk')
           print('Release APK checksum verified:', actual)
-          PY
+          PYIN
       - name: Enable hardware acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

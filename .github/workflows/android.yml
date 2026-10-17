@@ -1,13 +1,18 @@
-name: Android debug and corresponding source
+name: Android build and verified publication
 on:
   workflow_dispatch:
     inputs:
+      build_type:
+        description: 'Signed universal release build, or developer debug build'
+        type: choice
+        options: [release, debug]
+        default: release
       build_ref:
-        description: 'Optional source tag/commit to build with this workflow (empty = selected workflow ref)'
+        description: 'Optional source tag/commit (empty = selected workflow ref)'
         required: false
         default: ''
       release_tag:
-        description: 'Optional new prerelease tag, for example v0.1.1-preview (empty = artifact only)'
+        description: 'Optional new prerelease tag (empty = artifacts only)'
         required: false
         default: ''
   pull_request:
@@ -17,10 +22,16 @@ permissions:
 jobs:
   android:
     runs-on: ubuntu-latest
+    env:
+      BUILD_KIND: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type || 'debug' }}
+    outputs:
+      kind: ${{ steps.kind.outputs.kind }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.build_ref || github.sha }}
+      - id: kind
+        run: echo "kind=$BUILD_KIND" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -34,40 +45,119 @@ jobs:
           packages: 'platform-tools platforms;android-35 build-tools;34.0.0 build-tools;35.0.0'
           log-accepted-android-sdk-licenses: false
       - run: npm ci
-      - name: Test Android translations, exports, packaging and existing bridge
+      - name: Focused Android checks
         run: npm test -- src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
-      - run: npm run android:debug
-      - name: Bundle complete corresponding source and instructions
+      - name: Restore private distribution key outside the checkout
+        if: env.BUILD_KIND == 'release'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          encoded = os.environ.get('KEYSTORE_BASE64')
+          if not encoded:
+              raise SystemExit('Configure ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD repository secrets before release builds')
+          key = Path(os.environ['RUNNER_TEMP']) / 'foliokit-release.p12'
+          key.write_bytes(base64.b64decode(encoded, validate=True))
+          key.chmod(0o600)
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f'ANDROID_SIGNING_KEYSTORE={key}\n')
+          PY
+      - name: Build signed universal release
+        if: env.BUILD_KIND == 'release'
+        env:
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: npm run android:release
+      - name: Build developer debug APK
+        if: env.BUILD_KIND == 'debug'
+        run: npm run android:debug
+      - name: Verify package, signature and corresponding source
         run: |
           mkdir -p android-release
+          if [ "$BUILD_KIND" = release ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk android-release/FolioKit-universal.apk
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk android-release/FolioKit-debug.apk
+          fi
+          APK=$(find android-release -name '*.apk' -print -quit)
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" > android-release/signature-verification.txt
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" > android-release/package-info.txt
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump xmltree "$APK" AndroidManifest.xml > android-release/manifest-info.txt
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          manifest = Path('android-release/manifest-info.txt').read_text()
+          assert not re.search(r'android:testOnly.*0xffffffff', manifest), 'Test-only APK cannot be published'
+          if os.environ['BUILD_KIND'] == 'release':
+              assert not re.search(r'android:debuggable.*0xffffffff', manifest), 'Distribution APK must not be debuggable'
+          PY
           git archive --format=tar.gz --output=android-release/corresponding-source.tar.gz HEAD
-          cp android/app/build/outputs/apk/debug/app-debug.apk android-release/FolioKit-debug.apk
           cp ANDROID.md LICENSE CONTRIBUTORS.md out/source-info.json out/third-party-notices.json android-release/
           git rev-parse HEAD > android-release/REVISION.txt
-          python3 scripts/android-apk-report.py android-release/FolioKit-debug.apk > android-release/apk-report.json
+          python3 scripts/android-apk-report.py "$APK" > android-release/apk-report.json
           cd android-release
-          sha256sum FolioKit-debug.apk corresponding-source.tar.gz > SHA256SUMS.txt
+          sha256sum *.apk corresponding-source.tar.gz > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: android-debug-with-source
+          name: android-with-source
           path: android-release/
           compression-level: 0
+  install:
+    needs: android
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [23, 35, 36]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.build_ref || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-with-source
+          path: android-release
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash scripts/android-install-check.sh "$(find android-release -name '*.apk' -print -quit)" install-check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: install-check-api-${{ matrix.api }}
+          path: install-check/
   publish-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
-    needs: android
+    needs: [android, install]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: android-debug-with-source
+          name: android-with-source
           path: android-release
-      - name: Publish debug preview with exact corresponding source
+      - name: Publish only after installation and launch checks pass
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          BUILD_KIND: ${{ needs.android.outputs.kind }}
         run: |
-          printf '%s\n' 'FolioKit Android debug preview. Not a store release; physical-device testing remains required.' '' 'AGPL-3.0. Complete corresponding source, build instructions, checksums and size report are attached. See ANDROID.md for experimental Office/WASM features and license review limitations.' > release-notes.md
-          gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — Android preview" --notes-file release-notes.md
+          printf '%s\n' "FolioKit Android $BUILD_KIND build preview. AGPL-3.0; Android contributor Mohammad Askar (dr-askar), adapted from PDFCraft." '' 'Ordinary APK installation and activity launch passed on fresh Android API 23, 35 and 36 emulators. This does not guarantee every phone or OEM policy, and it is not a Google Play release.' '' 'The universal release APK is non-debuggable, not test-only, signed with the persistent FolioKit distribution key and contains no native ABI restrictions. Complete corresponding source, build instructions, checksums, signature details and size/provenance reports are attached. See ANDROID.md for device requirements, signing/update behavior and experimental Office/WASM features.' > release-notes.md
+          gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — universal Android" --notes-file release-notes.md

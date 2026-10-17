@@ -24,7 +24,8 @@ with zipfile.ZipFile(apk) as bundle:
     assert metadata['modified'] is False, 'Build contains uncommitted changes'
     assert 'Mohammad Askar' in bundle.read('assets/public/open-source.html').decode()
     assert 'GNU AFFERO GENERAL PUBLIC LICENSE' in bundle.read('assets/public/AGPL-3.0.txt').decode()
-    report = dict(apk=apk.name, bytes=apk.stat().st_size, mib=round(apk.stat().st_size / 1048576, 2), source=metadata,
+    assert not any(name.startswith('lib/') for name in names), 'New native libraries require an ABI compatibility review'
+    report = dict(architecture='universal (Java/WebView/WASM; no native ABI libraries)', apk=apk.name, bytes=apk.stat().st_size, mib=round(apk.stat().st_size / 1048576, 2), source=metadata,
                   compressed_groups_mib={key: round(value / 1048576, 2) for key, value in groups.most_common()})
     print(json.dumps(report, indent=2))
     assert apk.stat().st_size < 300 * 1048576, 'APK exceeds the 300 MiB regression budget; inspect duplicate assets'

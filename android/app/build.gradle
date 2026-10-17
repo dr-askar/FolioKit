@@ -7,8 +7,8 @@ android {
         applicationId "io.github.draskar.foliokit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "0.1.1"
+        versionCode 3
+        versionName "0.1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +16,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        distribution {
+            def keystorePath = System.getenv("ANDROID_SIGNING_KEYSTORE")
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv("ANDROID_SIGNING_PASSWORD")
+                keyAlias "foliokit"
+                keyPassword System.getenv("ANDROID_SIGNING_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            debuggable false
+            signingConfig signingConfigs.distribution
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -51,4 +64,13 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+// Fail explicitly rather than creating an unsigned distributable APK.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(":app:assembleRelease") || graph.hasTask(":app:bundleRelease")) {
+        if (!System.getenv("ANDROID_SIGNING_KEYSTORE") || !System.getenv("ANDROID_SIGNING_PASSWORD")) {
+            throw new GradleException("Release signing requires ANDROID_SIGNING_KEYSTORE and ANDROID_SIGNING_PASSWORD")
+        }
+    }
 }

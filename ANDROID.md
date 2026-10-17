@@ -147,3 +147,25 @@ The earlier local measurement/Chromium validation used source commit `c3e7ddf`. 
 The generic installer dialog does not identify a cause. On a first install, a signing conflict with an older installed FolioKit is not an appropriate default diagnosis. Check the exact release APK with Android Package Manager before claiming a fix. `Android APK install compatibility` downloads the public APK, verifies its published checksum, installs it without the test-only `adb install -t` bypass on fresh API 23/35/36 emulators, starts MainActivity, and retains install output, launch output, logcat and a screenshot as Actions artifacts.
 
 The current APK has no native `lib/<ABI>/` libraries: its Java/WebView/WASM code is already architecture independent, so renaming it “universal” or adding ABI splits does not fix an unexplained installer error. Supported Android minimum is API 23 (Android 6). Emulator results cannot guarantee every manufacturer's security policy or an intact download on a physical phone. If installation fails on a phone, the useful diagnostic is the exact Package Manager error from `adb install path/to/FolioKit.apk` (without `-t`). Do not tell users to uninstall an existing app without explaining that app-local data may be lost; do not recommend disabling device protection merely to hide a packaging problem.
+
+## Signed universal release builds (0.1.2+)
+
+`FolioKit-universal.apk` is the non-debuggable, non-test-only distribution build. It has no native ABI-specific libraries and does not use split APK installation: the same file is intended for ARM/ARM64/x86/x86_64 Android devices meeting the OS/WebView requirements. Minimum Android remains 6/API 23; a sufficiently current Android System WebView is required for the JavaScript/WASM frontend. “Universal” does not guarantee every OEM security policy, every WebView, or phones older than Android 6.
+
+```sh
+npm ci
+# Set these only for the build process; keep the key outside the checkout:
+export ANDROID_SIGNING_KEYSTORE=/private/path/foliokit-release.p12
+# Supply ANDROID_SIGNING_PASSWORD through your private environment/secret manager.
+npm run android:release
+```
+
+Output: `android/app/build/outputs/apk/release/app-release.apk`. Gradle fails release builds without a signing key/password rather than creating an unsigned APK. The key alias is `foliokit`. Release version 0.1.2 uses versionCode 3. A distribution key is distinct from previous machine-generated Android debug keys; existing debug installs cannot be upgraded in place with a differently signed release. Explain data loss before suggesting uninstalling one. Future release updates must keep the same distribution key and increase versionCode.
+
+The distribution key is generated outside the repository and a private owner backup is retained separately. Never put the PKCS12, its password, or the private backup in git, Actions caches, or public release artifacts. Repository Actions secrets `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD` enable automatic signed builds. The connected integration could not write these secrets (GitHub returned 403 for the Secrets API), so an owner must configure them through repository Settings → Secrets and variables → Actions before using automatic release signing. Do not claim the secrets were stored when that API call failed. A local signing build remains possible without those GitHub secrets.
+
+The Android workflow accepts `build_type=release` (manual default) or `debug` (developer/PR checks). Signed publication is gated on ordinary installation and activity launch in fresh API 23, 35 and 36 emulators, plus signature, ZIP alignment, architecture, manifest, provenance and size checks. Screenshots/UI hierarchy collection are diagnostic only: inability to dump an animated UI must not turn a successful installation into a false install failure. The separate install compatibility workflow can verify a draft release with its short-lived read token before public publication.
+
+### Evidence for the original generic installer report
+
+The original 0.1.1 release APK's published checksum, v1/v2 signatures, ZIP alignment and manifest were verified. It contains no native ABI libraries and is not marked testOnly. Fresh API 23 and 36 emulator jobs installed and launched it successfully. API 35's Package Manager also reported `Success`; that job failed later while collecting an optional UI dump. These observations do not establish the cause of the generic “App not installed” dialog on the user's first physical-phone attempt. Do not describe the distribution signing change as a proven diagnosis of that phone. No existing-install signing conflict should be asserted after the user says this was their first install.

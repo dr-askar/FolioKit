@@ -1,6 +1,6 @@
 {
   "name": "pdfcraft",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -22,7 +22,8 @@
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
     "android:notices": "node scripts/android-notices.mjs",
     "android:build": "node scripts/android-build.mjs",
-    "android:prepare": "node scripts/android-prepare.mjs"
+    "android:prepare": "node scripts/android-prepare.mjs",
+    "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.9",
