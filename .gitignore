@@ -99,3 +99,6 @@ public/third-party-notices.json
 
 # Shared Android translations generated during packaging
 public/android-messages/
+
+# Native on-device installation diagnostic build
+tools/install-check/build/

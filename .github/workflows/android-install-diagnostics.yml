@@ -1,0 +1,120 @@
+name: Verify and publish on-device install diagnostics
+on:
+  workflow_dispatch:
+    inputs:
+      apk_base64:
+        description: 'Public signed diagnostic APK (base64, never a signing key)'
+        required: true
+      apk_sha256:
+        description: 'SHA-256 of the signed helper'
+        required: true
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Restore and verify public diagnostic package
+        env:
+          APK_BASE64: ${{ inputs.apk_base64 }}
+          APK_SHA256: ${{ inputs.apk_sha256 }}
+        run: |
+          mkdir -p tools/install-check/build diagnostic-release
+          python3 - <<'PY'
+          import base64,hashlib,os
+          from pathlib import Path
+          apk=base64.b64decode(os.environ['APK_BASE64'],validate=True)
+          assert hashlib.sha256(apk).hexdigest()==os.environ['APK_SHA256']
+          Path('tools/install-check/build/FolioKit-install-check.apk').write_bytes(apk)
+          Path('diagnostic-release/FolioKit-install-check.apk').write_bytes(apk)
+          PY
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs diagnostic-release/FolioKit-install-check.apk > diagnostic-release/signature-verification.txt
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 4 diagnostic-release/FolioKit-install-check.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging diagnostic-release/FolioKit-install-check.apk > diagnostic-release/package-info.txt
+          git archive --format=tar.gz --output=diagnostic-release/corresponding-helper-source.tar.gz HEAD tools/install-check LICENSE CONTRIBUTORS.md
+          git rev-parse HEAD > diagnostic-release/REVISION.txt
+          cp LICENSE CONTRIBUTORS.md tools/install-check/README.md diagnostic-release/
+          cd diagnostic-release
+          sha256sum *.apk *.tar.gz > SHA256SUMS.txt
+      - name: Prepare actual install-session tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.1.2-preview --repo "$GITHUB_REPOSITORY" --pattern FolioKit-universal.apk --dir "$RUNNER_TEMP"
+          echo 'f246543f4c1baa0a13e1d53b21a266b0ae8c01d3ef9b0d84e26f2a7432659026  '"$RUNNER_TEMP/FolioKit-universal.apk" | sha256sum -c -
+          bash tools/install-check/tests/build.sh "$RUNNER_TEMP/FolioKit-universal.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: public-install-diagnostics
+          path: diagnostic-release/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ephemeral-install-test-packages
+          path: |
+            tools/install-check/build/FolioKit-install-check.apk
+            tools/install-check/build/tests/helper-test-signed.apk
+            tools/install-check/build/tests/tests.apk
+            tools/install-check/build/tests/conflict.apk
+          compression-level: 0
+          retention-days: 1
+  test:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [23, 35, 36]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: ephemeral-install-test-packages
+          path: tools/install-check/build
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: python3 tools/install-check/tests/run.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diagnostic-evidence-api-${{ matrix.api }}
+          path: install-check-diagnostics/
+  publish:
+    needs: [prepare, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: public-install-diagnostics
+          path: diagnostic-release
+      - name: Publish diagnostic helper only after end-to-end checks pass
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          printf '%s\n' 'Small native helper for diagnosing FolioKit 0.1.2 installation failures. This is not the PDF application and does not promise to fix the underlying cause.' '' 'Choose the downloaded FolioKit-universal.apk, verify it, request installation, then copy Android’s exact result. No computer, phone model, or data upload is required. See README.md for instructions, storage requirements and limitations.' '' 'Verified on Android API 23, 35 and 36: ordinary helper installation, incomplete-download rejection, actual PackageInstaller success, and reporting a deliberately created signature conflict. The conflict test is a diagnostic fixture, not a diagnosis of any user’s phone.' > notes.md
+          gh release create install-check-v0.1.0 diagnostic-release/* --target "$(cat diagnostic-release/REVISION.txt)" --prerelease --title 'FolioKit Install Check 0.1.0 — diagnostic helper' --notes-file notes.md
