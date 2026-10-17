@@ -51,6 +51,7 @@ jobs:
         with:
           name: android-debug-with-source
           path: android-release/
+          compression-level: 0
   publish-preview:
     if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
     needs: android

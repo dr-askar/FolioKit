@@ -55,7 +55,7 @@ This was primarily web-asset duplication, not debug symbols or native Android co
 - Android skips Cloudflare's asset-chunking postbuild step. An APK has no Cloudflare per-file limit. Packaging refuses stale chunks or missing engine files rather than silently distributing broken tools.
 - No remote engine downloads or removal of languages/tools were introduced to meet a smaller download target. Office remains experimental because WebView cross-origin isolation is a separate limitation.
 
-The new measured APK size and compressed component breakdown are attached to each release as `apk-report.json`. `scripts/android-apk-report.py` verifies all 17 locale files/routes, required raw engines, absence of duplicate Office gzip/chunks, legal notices, and clean-source metadata. It rejects APKs above a **300 MiB regression budget**. That is a guard against accidental duplication, not a promise that the app can be reduced below 100 MB while retaining every bundled engine.
+The measured APK size and compressed component breakdown are attached to each release as `apk-report.json`. `scripts/android-apk-report.py` verifies all 17 locale files/routes, required raw engines, absence of duplicate Office gzip/chunks, legal notices, and clean-source metadata. It rejects APKs above a **300 MiB regression budget**. That is a guard against accidental duplication, not a promise that the app can be reduced below 100 MB while retaining every bundled engine.
 
 ## Exact build pipeline
 
@@ -72,7 +72,7 @@ python3 scripts/android-apk-report.py android/app/build/outputs/apk/debug/app-de
 
 1. Commit and push all changes to this repository.
 2. Open **Actions → Android debug and corresponding source → Run workflow** on the intended branch/ref.
-3. Leave `release_tag` empty for a downloadable Actions artifact only. Set a new tag such as `v0.1.1-preview` to publish a GitHub prerelease after a successful build. The job needs repository Contents write permission only for publishing.
+3. Leave `release_tag` empty for a downloadable Actions artifact only. Set a new tag such as `v0.1.1-preview.1` to publish a GitHub prerelease after a successful build. The job needs repository Contents write permission only for publishing.
 4. The release includes the APK, exact corresponding source archive, `REVISION.txt`, `SHA256SUMS.txt`, `apk-report.json`, legal notices and these build instructions. Never move an existing release tag onto different source or upload an APK built from another revision under it.
 5. A locally built preview may also be uploaded with `gh release create`, using an exact commit/tag and `--prerelease`. Always upload its matching source archive and checksums in the same release. Use a notes file with `--notes-file`.
 
@@ -84,7 +84,7 @@ FolioKit repository: https://github.com/dr-askar/FolioKit. Original project: htt
 
 Automated build checks are not a physical-device test or a completed legal audit. The 230 npm package notices are included, but bundled WASM/Python wheels/fonts and native transitive dependencies still need a full license/source-availability review before treating this as production distribution. Known device-testing requirements are listed above. A successful APK signature check proves package integrity, not tool correctness on every WebView.
 
-## Measured 0.1.1 preview result (2026-10-17)
+## Local 0.1.1 size validation (2026-10-17)
 
 The APK built from source commit `c3e7ddf21ce9822b074c00c63626df82465b6432` is **223,517,838 bytes (213.16 MiB)**, compared with the initial **593,661,002-byte (566.16 MiB)** APK: a **62.3% reduction**. All 17 languages and required Office/PDF engines are still packaged.
 
@@ -99,7 +99,7 @@ The APK built from source commit `c3e7ddf21ce9822b074c00c63626df82465b6432` is *
 
 The remaining size is largely real bundled engines. Getting below 100 MB would require a separate product decision, such as omitting engines/tools or making them optional downloads, rather than another safe duplicate-file cleanup.
 
-Validation: 23 focused tests passed, TypeScript passed, the production Android frontend and Gradle APK build succeeded, and Android apksigner verified the package. A Chromium browser smoke test loaded Arabic with RTL, loaded the English merge tool, imported two one-page PDFs, and downloaded a valid two-page PDF without uncaught JavaScript/hydration errors. This was **not** a physical-device/emulator test. See [the recorded validation](docs/android-v0.1.1-validation.md), the [preview release](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview), and its attached `apk-report.json` for exact provenance and component sizes.
+Validation: 23 focused tests passed, TypeScript passed, the production Android frontend and Gradle APK build succeeded, and Android apksigner verified the package. A Chromium browser smoke test loaded Arabic with RTL, loaded the English merge tool, imported two one-page PDFs, and downloaded a valid two-page PDF without uncaught JavaScript/hydration errors. This was **not** a physical-device/emulator test. See [the recorded validation](docs/android-v0.1.1-validation.md), the [preview release](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview.1), and its attached `apk-report.json` for exact provenance and component sizes.
 
 ## Source archive versus Git checkout
 
@@ -108,7 +108,7 @@ Use a Git checkout for releases: the notices generator records `git rev-parse HE
 ```sh
 git clone https://github.com/dr-askar/FolioKit.git
 cd FolioKit
-git checkout --detach v0.1.1-preview
+git checkout --detach v0.1.1-preview.1
 npm ci
 npm run android:debug
 ```
@@ -118,7 +118,7 @@ GitHub and `git archive` source archives omit `.git`. If building from a **fresh
 ```sh
 git init
 git remote add origin https://github.com/dr-askar/FolioKit.git
-git fetch --depth=1 origin refs/tags/v0.1.1-preview
+git fetch --depth=1 origin refs/tags/v0.1.1-preview.1
 git reset --mixed FETCH_HEAD
 npm ci
 npm run android:debug
@@ -134,4 +134,10 @@ A connected integration can allow Git pushes/API calls but reject `uploads.githu
 
 The workflow explicitly installs `platform-tools`, `platforms;android-35`, `build-tools;34.0.0` and `build-tools;35.0.0`. Do not use setup-android's legacy default `tools` package: Google no longer supplies it, causing setup to fail before the application build starts.
 
-`build_ref` optionally selects the software source commit/tag independently of the workflow revision. This lets the current workflow infrastructure rebuild an older tagged release without moving that tag. Leave it empty for the selected workflow's own ref. Publishing reads its target revision from the built artifact's `REVISION.txt`, so the uploaded APK, source archive and tag must refer to that software revision. For the 0.1.1 preview, run the workflow from `main` with `build_ref=v0.1.1-preview` and `release_tag=v0.1.1-preview`. The workflow implementation may be newer than the application source it checks out. Do not move an existing tag to fix a workflow.
+`build_ref` optionally selects the software source commit/tag independently of the workflow revision. This lets the current workflow infrastructure rebuild an older tagged release without moving that tag. Leave it empty for the selected workflow's own ref. Publishing reads its target revision from the built artifact's `REVISION.txt`, so the uploaded APK, source archive and tag must refer to that software revision. For the 0.1.1 preview, run the workflow from `main` with `build_ref=v0.1.1-preview.1` and `release_tag=v0.1.1-preview.1`. The workflow implementation may be newer than the application source it checks out. Do not move an existing tag to fix a workflow.
+
+### Clean npm installation repair and published build provenance
+
+A clean GitHub runner exposed a missing SWC helper peer entry in the initial lockfile: `npm ci` failed with `Missing: @swc/helpers@0.5.23`. FolioKit now pins `@swc/helpers` 0.5.23 explicitly and commits a synchronized lockfile. Validate lock repairs with the CI npm major version (`npx npm@10 ci --dry-run --ignore-scripts`, followed by a real clean installation and focused tests), rather than relying on an existing node_modules installation. Do not replace `npm ci` with an unlocked `npm install` in release builds.
+
+The earlier local measurement/Chromium validation used source commit `c3e7ddf`. The published `v0.1.1-preview.1` rebuild uses the repaired lockfile and current SDK workflow; its attached `REVISION.txt`, `source-info.json`, `apk-report.json` and `SHA256SUMS.txt` are authoritative for the downloadable APK. Debug keys/build timestamps can change its hash and exact byte count even when the measured size reduction remains the same. The old `v0.1.1-preview` tag records the initial local-build source and is not the download release.

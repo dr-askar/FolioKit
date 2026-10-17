@@ -1,4 +1,4 @@
-# FolioKit Android 0.1.1 preview validation
+# FolioKit Android 0.1.1 local size validation
 
 Date: 2026-10-17. Android adaptation contributor: Mohammad Askar (dr-askar). License: AGPL-3.0.
 
@@ -13,4 +13,4 @@ Date: 2026-10-17. Android adaptation contributor: Mohammad Askar (dr-askar). Lic
 - Chromium browser check at a mobile viewport: Arabic homepage hydrated with RTL; English merge imported two PDFs and downloaded a valid two-page PDF; no uncaught JavaScript/hydration errors.
 - Physical Android device/emulator testing: **not performed**. Office/threaded WASM remains experimental. This is a debug preview, not a store release or completed legal audit.
 
-[GitHub prerelease and downloads](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview). Its corresponding-source archive matches the software commit above. Subsequent documentation-only commits do not change that APK's source revision. Follow [ANDROID.md](../ANDROID.md) for reproduction, packaging, signing, legal attribution and release instructions.
+[GitHub prerelease and downloads](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview.1). The published preview was subsequently rebuilt with the clean-install lockfile and SDK workflow repairs. Its attached source revision, size report and checksums describe that downloadable APK; the local APK/hash above records the earlier measurement, not the CI-signed download. Follow [ANDROID.md](../ANDROID.md) for reproduction, packaging, signing, legal attribution and release instructions.
