@@ -394,3 +394,22 @@ select option {
   [data-foliokit-app="android"] [data-foliokit-card-meta] { display: none; }
   [data-foliokit-app="android"] [data-testid="tool-page-interface"] { overflow-x: auto; }
 }
+@media (max-width: 900px) {
+  [data-foliokit-app="android"] [data-foliokit-header] > div { padding-inline: 12px; }
+  [data-foliokit-app="android"] [data-foliokit-header] .foliokit-header-actions { gap: 2px; flex: 0 0 auto; }
+  [data-foliokit-app="android"] [data-foliokit-header] > div > div > div:first-child > a { gap: 4px; min-height: 44px; }
+  [data-foliokit-app="android"] [data-foliokit-header] > div > div > div:first-child > a > div { width: 28px; height: 28px; }
+  [data-foliokit-app="android"] [data-foliokit-header] [data-testid="brand-name"] { font-size: 18px; }
+  [data-foliokit-app="android"] [data-foliokit-recent] > div > button { width: 44px; padding-inline: 6px; }
+  [data-foliokit-app="android"] [data-foliokit-recent] > div > button > span,
+  [data-foliokit-app="android"] [data-foliokit-recent] > div > button > svg:last-child { display: none; }
+  [data-foliokit-app="android"] [data-foliokit-header] nav[aria-label="Main navigation"],
+  [data-foliokit-app="android"] [data-foliokit-header] a[aria-label="GitHub Repository"] { display: none; }
+  [data-foliokit-app="android"] [data-foliokit-menu-toggle] { display: inline-flex; }
+  [data-foliokit-app="android"] #mobile-menu { display: block; max-height: calc(100dvh - 56px); overflow-y: auto; }
+}
+@media (max-width: 900px) {
+  [data-foliokit-app="android"] [data-foliokit-recent] [role="menu"] { position: fixed; inset-inline: 8px; top: calc(60px + env(safe-area-inset-top, 0px)); width: auto; max-height: min(60dvh, 420px); }
+  [data-foliokit-app="android"] [data-foliokit-search] { position: fixed; inset-inline: 12px; top: calc(6px + env(safe-area-inset-top, 0px)); transform: none; }
+  [data-foliokit-app="android"] [data-foliokit-search] > div { width: 100%; }
+}

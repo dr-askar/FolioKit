@@ -136,11 +136,18 @@
   }
   bottom.append(settings);
   const undo = button('foliokit-undo', labels.undo, 'undo', () => bus.dispatch('editingaction', { source: bottom, name: 'undo' }));
+  undo.disabled = true;
   bottom.append(undo);
+  let redo;
   if (more) {
-    const redo = button('foliokit-redo', labels.redo, 'redo', () => bus.dispatch('editingaction', { source: more, name: 'redo' }));
+    redo = button('foliokit-redo', labels.redo, 'redo', () => bus.dispatch('editingaction', { source: more, name: 'redo' }));
+    redo.disabled = true;
     more.prepend(redo);
   }
+  bus._on('annotationeditorstateschanged', ({ details }) => {
+    if ('hasSomethingToUndo' in details) undo.disabled = !details.hasSomethingToUndo;
+    if (redo && 'hasSomethingToRedo' in details) redo.disabled = !details.hasSomethingToRedo;
+  });
   $('outerContainer').append(bottom);
   function syncMode({ mode: nextMode }) {
     mode = nextMode;

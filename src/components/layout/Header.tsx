@@ -21,6 +21,8 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => {
   const t = useTranslations('common');
+  const androidApp = process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true';
+  const repositoryUrl = androidApp ? 'https://github.com/dr-askar/FolioKit' : 'https://github.com/PDFCraftTool/pdfcraft';
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -233,12 +235,12 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
           </nav>
 
           {/* Right side actions */}
-          <div className="flex flex-1 items-center justify-end gap-3">
+          <div className="foliokit-header-actions flex flex-1 items-center justify-end gap-3">
             {/* Search */}
             {showSearch && (
               <div className="relative" ref={searchContainerRef}>
                 {isSearchOpen ? (
-                  <div className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-[22px] md:top-1/2 md:-translate-y-1/2 z-50 md:origin-right animate-in fade-in slide-in-from-right-4 duration-200">
+                  <div data-foliokit-search className="fixed md:absolute left-4 right-4 md:left-auto md:right-0 top-[22px] md:top-1/2 md:-translate-y-1/2 z-50 md:origin-right animate-in fade-in slide-in-from-right-4 duration-200">
                     <div className="relative w-full md:w-96">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--color-muted-foreground))]" />
                       <input
@@ -320,6 +322,7 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
             )}
 
             {/* Recent Files Dropdown */}
+            <div data-foliokit-recent>
             <RecentFilesDropdown
               locale={locale}
               translations={{
@@ -330,12 +333,14 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
               }}
             />
 
+            </div>
+
             {/* Update Check Button */}
-            <UpdateCheckButton />
+            {!androidApp && <UpdateCheckButton />}
 
             {/* GitHub Repository Link */}
             <a
-              href="https://github.com/PDFCraftTool/pdfcraft"
+              href={repositoryUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden sm:flex items-center justify-center h-9 w-9 rounded-lg text-[hsl(var(--color-muted-foreground))] hover:text-[hsl(var(--color-foreground))] hover:bg-[hsl(var(--color-muted))/0.5] transition-all"
@@ -359,6 +364,7 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
+              data-foliokit-menu-toggle
             >
               {isMobileMenuOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -404,7 +410,7 @@ export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => 
               {/* GitHub Link in Mobile Menu */}
               <li>
                 <a
-                  href="https://github.com/PDFCraftTool/pdfcraft"
+                  href={repositoryUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 px-4 py-3 text-base font-medium text-[hsl(var(--color-foreground))] hover:bg-[hsl(var(--color-muted))] rounded-lg transition-colors"

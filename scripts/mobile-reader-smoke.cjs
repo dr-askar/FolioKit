@@ -43,6 +43,10 @@ const http = require('node:http');
       const filename = 'A deliberately long document name to check mobile overflow and export.pdf';
       if (hosted) {
         await page.goto(`${base}/${locale}/tools/pdf-reader/`);
+        await page.locator('input[type=file]').first().waitFor({ state: 'attached' });
+        const headerBounds = await page.locator('[data-foliokit-header] button').evaluateAll(buttons => buttons.map(n => n.getBoundingClientRect()).filter(r => r.width).map(r => ({ left: r.left, right: r.right })));
+        assert(headerBounds.every(r => r.left >= 0 && r.right <= width + 1), `${name}: header controls extend beyond screen`);
+        assert.equal(await page.getByRole('button', { name: 'Check for Updates' }).count(), 0, 'Desktop updater is exposed on Android');
         await page.locator('input[type=file]').first().setInputFiles({ name: filename, mimeType: 'application/pdf', buffer: fixture });
         await page.locator('iframe').waitFor();
         frame = page.frames().find(f => f.url().includes('/pdfjs-viewer/viewer.html'));
