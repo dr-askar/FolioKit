@@ -2,6 +2,10 @@ name: Android debug and corresponding source
 on:
   workflow_dispatch:
     inputs:
+      build_ref:
+        description: 'Optional source tag/commit to build with this workflow (empty = selected workflow ref)'
+        required: false
+        default: ''
       release_tag:
         description: 'Optional new prerelease tag, for example v0.1.1-preview (empty = artifact only)'
         required: false
@@ -15,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.build_ref || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -24,6 +30,9 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;34.0.0 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
       - run: npm ci
       - name: Test Android translations, exports, packaging and existing bridge
         run: npm test -- src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
@@ -60,4 +69,4 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           printf '%s\n' 'FolioKit Android debug preview. Not a store release; physical-device testing remains required.' '' 'AGPL-3.0. Complete corresponding source, build instructions, checksums and size report are attached. See ANDROID.md for experimental Office/WASM features and license review limitations.' > release-notes.md
-          gh release create "$RELEASE_TAG" android-release/* --target "$GITHUB_SHA" --prerelease --title "FolioKit $RELEASE_TAG — Android preview" --notes-file release-notes.md
+          gh release create "$RELEASE_TAG" android-release/* --target "$(cat android-release/REVISION.txt)" --prerelease --title "FolioKit $RELEASE_TAG — Android preview" --notes-file release-notes.md

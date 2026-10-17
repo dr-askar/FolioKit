@@ -129,3 +129,9 @@ The mixed reset sets HEAD/index to the fetched release revision and leaves the e
 ## Release upload troubleshooting
 
 A connected integration can allow Git pushes/API calls but reject `uploads.github.com` with `401 Bad credentials`. Do not put tokens in files or the repository, and do not assume that uploading source to `main` has uploaded an APK. Use the manual Android Actions workflow with `release_tag` instead; its publish job receives GitHub's own short-lived repository token with explicit Contents write permission. Select the intended release tag as the workflow ref so its APK and source archive refer to the same revision. Verify the completed GitHub Release asset list and the size report before declaring the APK published. If a prior upload left a draft, inspect it before retrying to avoid duplicate release names or incomplete asset sets.
+
+### CI SDK compatibility and rebuilding a tagged source
+
+The workflow explicitly installs `platform-tools`, `platforms;android-35`, `build-tools;34.0.0` and `build-tools;35.0.0`. Do not use setup-android's legacy default `tools` package: Google no longer supplies it, causing setup to fail before the application build starts.
+
+`build_ref` optionally selects the software source commit/tag independently of the workflow revision. This lets the current workflow infrastructure rebuild an older tagged release without moving that tag. Leave it empty for the selected workflow's own ref. Publishing reads its target revision from the built artifact's `REVISION.txt`, so the uploaded APK, source archive and tag must refer to that software revision. For the 0.1.1 preview, run the workflow from `main` with `build_ref=v0.1.1-preview` and `release_tag=v0.1.1-preview`. The workflow implementation may be newer than the application source it checks out. Do not move an existing tag to fix a workflow.
