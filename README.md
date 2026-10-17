@@ -8,6 +8,8 @@ An open-source Android PDF toolkit adapted from [PDFCraft](https://github.com/PD
 
 Download the APK attached to a release using your phone. Allow installation from that browser when Android asks. Release previews are experimental; keep backups of important documents.
 
+If the download fails the Install Check checksum test, use the [verified ZIP download](https://github.com/dr-askar/FolioKit/releases/download/v0.1.2-preview/FolioKit-0.1.2-verified.zip), extract it with the phone file manager, and choose the extracted APK in the helper. The ZIP contains the unchanged 0.1.2 APK; a matching file is required before diagnosing device compatibility.
+
 The universal APK has no CPU architecture restrictions. Android 6.0 (API 23) or newer and an updated Android System WebView are required. Device policies, available storage and WebView compatibility can still affect installation or operation. A universal APK cannot guarantee support for every phone.
 
 If Android only says **“App not installed”**, the separate [Install Check helper](https://github.com/dr-askar/FolioKit/releases/tag/install-check-v0.1.0) can verify the downloaded 0.1.2 APK and display Android’s actual installation result. It is a 17 KB diagnostic utility, not the PDF application. [Instructions and source](tools/install-check/README.md).
