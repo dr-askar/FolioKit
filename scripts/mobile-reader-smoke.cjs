@@ -148,9 +148,11 @@ const http = require('node:http');
       }
       let saved;
       if (hosted) {
-        const download = page.waitForEvent('download');
-        await page.locator('.pdf-reader-filebar button').first().tap();
-        saved = fs.readFileSync(await (await download).path());
+        const [download] = await Promise.all([
+          page.waitForEvent('download'),
+          page.locator('.pdf-reader-filebar button:not(.pdf-reader-desktop-action)').first().tap(),
+        ]);
+        saved = fs.readFileSync(await download.path());
       } else saved = Buffer.from(await frame.evaluate(async () => Array.from(await PDFViewerApplication.pdfDocument.saveDocument())));
       const reopened = await PDFDocument.load(saved);
       const annotations = reopened.getPage(0).node.Annots();
