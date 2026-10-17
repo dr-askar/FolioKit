@@ -80,6 +80,7 @@ public class MainActivity extends Activity {
         report.setTextSize(14);
         layout.addView(report);
         ScrollView scroll = new ScrollView(this);
+        scroll.setFitsSystemWindows(true);
         scroll.addView(layout);
         setContentView(scroll);
         if (state != null) preparation = state.getString("preparation", "");
@@ -145,7 +146,8 @@ public class MainActivity extends Activity {
                 } else {
                     PackageInfo info = getPackageManager().getPackageArchiveInfo(selected.getPath(), 0);
                     if (info == null || !TARGET.equals(info.packageName)) {
-                        outcome += "\nPACKAGE_PARSE_FAILED: Android could not parse the verified official APK.";
+                        verified = true;
+                        outcome += "\nPACKAGE_PARSE_FAILED: preliminary parsing failed despite the correct checksum. Tap Install to obtain Android’s installation result.";
                     } else {
                         verified = true;
                         outcome += "\nDownload verified. Package: " + info.packageName + ", version: " + info.versionName;
