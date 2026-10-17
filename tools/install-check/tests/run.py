@@ -27,13 +27,16 @@ for expected in ('SUCCESS','FAILURE_CONFLICT'):
                 xml=adb('shell','cat','/sdcard/install-check-test.xml')
                 (logs/(expected+'-ui.xml')).write_text(xml)
                 for node in ET.fromstring(xml).iter('node'):
-                    if node.get('text','').strip().lower()=='install' and node.get('enabled')=='true':
+                    if node.get('text','').strip().lower() in ('install','update') and node.get('enabled')=='true':
                         numbers=list(map(int,re.findall(r'\d+',node.get('bounds',''))))
                         if len(numbers)==4: adb('shell','input','tap',str((numbers[0]+numbers[2])//2),str((numbers[1]+numbers[3])//2))
             except (ET.ParseError,subprocess.CalledProcessError): pass
         if proc.poll() is None:
             proc.terminate(); raise SystemExit('Instrumentation timed out: '+expected)
     result=logfile.read_text();print(result)
-    assert 'installCheckPassed=true' in result, result
+    if 'installCheckPassed=true' not in result:
+        (logs/(expected+'-logcat.txt')).write_text(adb('logcat','-d'))
+        (logs/(expected+'-activity.txt')).write_text(adb('shell','dumpsys','activity','activities'))
+        raise AssertionError(result)
 adb('logcat','-d') # Android runtime errors remain in normal emulator logs too.
 print('Malformed download, real installation success, and signature-conflict reporting passed.')
