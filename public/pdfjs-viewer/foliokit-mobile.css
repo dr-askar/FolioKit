@@ -1,5 +1,5 @@
 /* Only enabled by FolioKit's Android reader; the upstream desktop viewer is unchanged. */
-html.foliokit-mobile { --toolbar-height: 44px; --foliokit-bottom: 52px; }
+html.foliokit-mobile { --toolbar-height: 44px; --menuitem-height: 44px; --foliokit-bottom: 52px; }
 .foliokit-mobile #toolbarContainer { display: none; }
 .foliokit-mobile #foliokit-topbar {
   position: absolute; inset: 0 0 auto; height: 44px; z-index: 12;
@@ -12,9 +12,12 @@ html.foliokit-mobile { --toolbar-height: 44px; --foliokit-bottom: 52px; }
   background: var(--toolbar-bg-color, #f9fafb); box-shadow: 0 -1px 4px #0003;
 }
 .foliokit-mobile #viewerContainer { inset: 44px 0 var(--foliokit-bottom); touch-action: pan-x pan-y; }
-.foliokit-mobile #sidebarContainer { inset-block: 44px var(--foliokit-bottom); max-width: 80vw; }
+.foliokit-mobile #sidebarContainer { inset-block: 44px var(--foliokit-bottom); width: min(288px, calc(100vw - 48px)); max-width: none; inset-inline-start: -100%; background: var(--toolbar-bg-color, #f5f5f5); }
 .foliokit-mobile #outerContainer.sidebarOpen #viewerContainer { inset-inline-start: 0; }
 .foliokit-mobile #sidebarContainer { z-index: 15; }
+.foliokit-mobile #sidebarContent { inset-block: 44px 0; }
+.foliokit-mobile #sidebarResizer { display: none; }
+.foliokit-mobile #toolbarSidebar { padding: 0 4px; box-sizing: border-box; }
 .foliokit-mobile .toolbarButton,
 .foliokit-mobile .foliokit-button { min-width: 44px; width: 44px; height: 44px; margin: 0; padding: 0; flex: 0 0 44px; touch-action: manipulation; }
 .foliokit-button { display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--main-color, #293548); cursor: pointer; }
@@ -28,8 +31,23 @@ html.foliokit-mobile { --toolbar-height: 44px; --foliokit-bottom: 52px; }
 .foliokit-mobile .foliokit-pages { display: flex; align-items: center; flex: 0 1 auto; min-width: 54px; font-size: 12px; }
 .foliokit-mobile #pageNumber { width: 34px; height: 40px; margin: 0; padding: 0 2px; box-sizing: border-box; font-size: 16px; text-align: center; }
 .foliokit-mobile #numPages { padding-inline: 2px; font-size: 12px; white-space: nowrap; }
-.foliokit-mobile #secondaryToolbar { top: 46px; max-height: calc(100dvh - 105px); overflow: auto; }
-.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer { min-height: 44px; }
+.foliokit-mobile #secondaryToolbar {
+  position: fixed; top: 48px; inset-inline-end: 8px; width: min(280px, calc(100vw - 16px));
+  min-width: 0; max-height: min(45dvh, 320px); overflow: auto; z-index: 25;
+  box-sizing: border-box; padding: 6px; border: 1px solid #8885; border-radius: 12px;
+  background: var(--toolbar-bg-color, #f9fafb); box-shadow: 0 4px 20px #0004;
+}
+.foliokit-mobile #secondaryToolbar::before, .foliokit-mobile #secondaryToolbar::after { display: none; }
+.foliokit-mobile #secondaryToolbarButtonContainer { display: flex; flex-direction: column; height: auto; max-height: none; overflow: visible; }
+.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer { display: block; width: 100%; height: auto; aspect-ratio: auto; }
+.foliokit-mobile #secondaryToolbar :is(.toolbarButton, .foliokit-button) {
+  display: flex; align-items: center; justify-content: flex-start; width: 100%; min-height: 44px; height: auto;
+  flex: 0 0 auto; aspect-ratio: auto; padding: 8px 10px; gap: 12px; text-align: start; white-space: normal;
+  font: 14px/1.35 system-ui, sans-serif; box-sizing: border-box;
+}
+.foliokit-mobile #secondaryToolbar .toolbarButton::before { flex: 0 0 24px; position: static; inset: auto; }
+.foliokit-mobile #secondaryToolbar :is(.toolbarButton, .foliokit-button) > span { display: block; width: auto; height: auto; min-width: 0; flex: 1; overflow: visible; margin: 0; overflow-wrap: anywhere; }
+.foliokit-mobile #secondaryToolbar .foliokit-button svg { flex: 0 0 24px; }
 .foliokit-mobile #findbar { position: fixed; top: 46px; inset-inline: 4px; max-width: calc(100vw - 8px); z-index: 20; box-sizing: border-box; }
 .foliokit-mobile #findInput { min-width: 0; max-width: 50vw; font-size: 16px; height: 40px; }
 .foliokit-mobile .editorParamsToolbar { display: none !important; }
@@ -55,11 +73,13 @@ html.foliokit-mobile { --toolbar-height: 44px; --foliokit-bottom: 52px; }
 .foliokit-mobile[data-foliokit-mode="9"] .textLayer.highlighting span { pointer-events: none; }
 .foliokit-mobile[data-foliokit-mode="9"] .textLayer.highlighting,
 .foliokit-mobile[data-foliokit-mode="15"] .annotationEditorLayer.inkEditing { touch-action: none; }
-.foliokit-mobile #editorUndoBar { bottom: 58px; max-width: calc(100vw - 16px); }
+.foliokit-mobile #editorUndoBar { top: auto; bottom: 60px; height: auto; max-height: 110px; max-width: calc(100vw - 16px); box-sizing: border-box; padding: 8px; font: 13px/1.3 system-ui, sans-serif; z-index: 14; overflow: auto; }
+.foliokit-mobile #editorUndoBar button { min-height: 44px; min-width: 44px; }
 .foliokit-mobile .dialog { max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; }
-.foliokit-mobile #secondaryToolbar { position: fixed; inset-inline-end: 4px; min-width: 230px; max-width: calc(100vw - 8px); z-index: 25; }
-.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer > button { width: 100%; text-align: start; }
-.foliokit-mobile #secondaryToolbar .toolbarButtonWithContainer button > span { display: inline; margin-inline-start: 40px; }
+.foliokit-mobile #foliokit-delete-selection { position: absolute; inset-inline-end: 8px; bottom: 60px; z-index: 13; color: #b91c1c; background: var(--toolbar-bg-color, #fff); border: 1px solid #8885; box-shadow: 0 2px 8px #0003; }
+.foliokit-mobile #foliokit-delete-selection[hidden] { display: none; }
+/* Selected marks use a single touch delete button, independent of page zoom. */
+.foliokit-mobile .annotationEditorLayer :is(.inkEditor, .highlightEditor, .freeTextEditor) > .editToolbar { display: none; }
 .foliokit-mobile body, .foliokit-mobile .editorParamsToolbar { font-family: system-ui, -apple-system, sans-serif; }
 .foliokit-mobile .pdfViewer.removePageBorders .page { margin-bottom: 8px; }
 .foliokit-mobile #mainContainer { min-width: 0; width: 100%; }

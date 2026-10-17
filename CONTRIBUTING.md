@@ -17,7 +17,7 @@ Report reproducible bugs, test a release on your Android device, improve accessi
 For Android translation, export or packaging changes, run:
 
 ```sh
-npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+npm test -- src/__tests__/components/tools/PagePreviewGrid.test.tsx src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
 npx tsc --noEmit
 ```
 

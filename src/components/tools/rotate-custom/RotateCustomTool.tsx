@@ -8,6 +8,7 @@ import { DownloadButton } from '../DownloadButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { rotateCustom } from '@/lib/pdf/processors/rotate-custom-processor';
+import { PagePreviewGrid } from '../PagePreviewGrid';
 import { configurePdfjsWorker } from '@/lib/pdf/loader';
 import type { ProcessOutput } from '@/types/pdf';
 
@@ -70,7 +71,7 @@ export function RotateCustomTool({ className = '' }: RotateCustomToolProps) {
 
             for (let i = 1; i <= maxPreviewPages; i++) {
                 const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 0.15 });
+                const viewport = page.getViewport({ scale: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 300 / page.getViewport({ scale: 1 }).width : 0.15 });
 
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -384,7 +385,7 @@ export function RotateCustomTool({ className = '' }: RotateCustomToolProps) {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 max-h-[500px] overflow-y-auto p-1">
+                        <PagePreviewGrid file={file} documents={pagePreviews.map(page => ({ file, pageNumber: page.pageNumber, rotation: page.rotation }))} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 max-h-[500px] overflow-y-auto p-1">
                             {pagePreviews.map((preview) => (
                                 <div
                                     key={preview.pageNumber}
@@ -437,7 +438,7 @@ export function RotateCustomTool({ className = '' }: RotateCustomToolProps) {
                                     </div>
                                 </div>
                             ))}
-                        </div>
+                        </PagePreviewGrid>
                     )}
                 </Card>
             )}

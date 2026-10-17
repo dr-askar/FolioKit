@@ -34,7 +34,7 @@ const http = require('node:http');
   const base = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch({ executablePath: process.env.BROWSER_EXECUTABLE || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
   try {
-    for (const [name, width, height, locale] of [['phone', 360, 800, 'en'], ['narrow', 320, 640, 'en'], ['rtl', 393, 852, 'ar'], ['landscape', 844, 390, 'en']]) {
+    for (const [name, width, height, locale] of [['phone', 360, 800, 'en'], ['narrow', 320, 640, 'en'], ['rtl', 393, 852, 'ar'], ['german', 360, 800, 'de'], ['landscape', 844, 390, 'en']]) {
       const context = await browser.newContext({ viewport: { width, height }, isMobile: true, hasTouch: true, locale: 'en-US', deviceScaleFactor: 1, acceptDownloads: true });
       const page = await context.newPage();
       const errors = [];
@@ -64,6 +64,20 @@ const http = require('node:http');
       assert(geometry.document.height > geometry.height * .6, `${name}: document viewport too small`);
       assert(geometry.controls.every(n => n.width >= 44 && n.height >= 44), `${name}: touch target smaller than 44px`);
       assert(geometry.width <= width + 1, `${name}: document overflows screen`);
+      await frame.locator('#sidebarToggleButton').tap();
+      await frame.waitForTimeout(400);
+      const sidebar = await frame.locator('#sidebarContainer').boundingBox();
+      assert(sidebar && sidebar.x >= -1 && sidebar.x + sidebar.width <= width + 1, `${name}: sidebar is off screen`);
+      assert(await frame.locator('#thumbnailView .thumbnail').first().isVisible(), `${name}: sidebar page navigation missing`);
+      await page.screenshot({ path: path.join(output, `${name}-sidebar.png`) });
+      assert(await frame.evaluate(() => foliokitReaderClosePanel()), 'Back adapter did not close sidebar');
+      await frame.locator('#secondaryToolbarToggleButton').tap();
+      const menu = await frame.locator('#secondaryToolbar').boundingBox();
+      assert(menu && menu.height <= Math.min(320, geometry.height * .45) + 1, `${name}: More menu covers too much of document`);
+      const rows = await frame.locator('#secondaryToolbar button:visible').evaluateAll(nodes => nodes.map(node => ({ id: node.id, width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height, textWidth: node.querySelector('span')?.getBoundingClientRect().width })));
+      assert(rows.every(row => row.width >= 200 && row.height >= 44 && (row.textWidth === undefined || row.textWidth >= 100)), `${name}: More menu labels or rows are collapsed`);
+      await page.screenshot({ path: path.join(output, `${name}-more.png`) });
+      await frame.locator('#secondaryToolbarToggleButton').tap();
       await frame.locator('#editorHighlightButton').tap();
       await frame.waitForFunction(() => document.documentElement.dataset.foliokitMode === '9');
       assert.equal(await frame.locator('#editorHighlightParamsToolbar').isVisible(), false, 'Selecting highlight opens settings');
@@ -107,6 +121,18 @@ const http = require('node:http');
         await frame.locator('#secondaryToolbarToggleButton').tap();
         await frame.locator('#foliokit-redo').tap();
         await frame.locator('#secondaryToolbarToggleButton').tap();
+        await frame.locator('#editorInkButton').tap();
+        await frame.locator('.inkEditor').first().tap();
+        await frame.locator('#foliokit-delete-selection').waitFor({ state: 'visible' });
+        const deletion = await frame.locator('#foliokit-delete-selection').boundingBox();
+        assert(deletion && deletion.width === 44 && deletion.height === 44, 'Delete selection is not compact');
+        await frame.locator('#foliokit-delete-selection').tap();
+        assert.equal(await frame.evaluate(() => [...PDFViewerApplication.pdfDocument.annotationStorage.serializable.map.values()].filter(a => !a.deleted).length), 1, 'Touch delete did not remove the selected mark');
+        const toast = await frame.locator('#editorUndoBar').boundingBox();
+        assert(toast && toast.height <= 110 && toast.x >= -1 && toast.x + toast.width <= width + 1, 'Deletion undo notice covers the document');
+        await page.screenshot({ path: path.join(output, `${name}-delete.png`) });
+        await frame.locator('#foliokit-undo').tap();
+        await frame.locator('#foliokit-read').tap();
         // Real two-finger pinch uses PDF.js's existing touch manager.
         const initial = await frame.evaluate(() => PDFViewerApplication.pdfViewer.currentScale);
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 140, y: 430 }, { x: 220, y: 430 }] });
@@ -123,7 +149,7 @@ const http = require('node:http');
       let saved;
       if (hosted) {
         const download = page.waitForEvent('download');
-        await page.getByRole('button', { name: locale === 'ar' ? 'حفظ' : 'Save', exact: true }).tap();
+        await page.locator('.pdf-reader-filebar button').first().tap();
         saved = fs.readFileSync(await (await download).path());
       } else saved = Buffer.from(await frame.evaluate(async () => Array.from(await PDFViewerApplication.pdfDocument.saveDocument())));
       const reopened = await PDFDocument.load(saved);

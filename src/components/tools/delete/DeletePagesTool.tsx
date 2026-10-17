@@ -8,6 +8,7 @@ import { DownloadButton } from '../DownloadButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { deletePages, parsePageSelection } from '@/lib/pdf/processors/delete';
+import { PagePreviewGrid } from '../PagePreviewGrid';
 import { configurePdfjsWorker } from '@/lib/pdf/loader';
 import type { ProcessOutput } from '@/types/pdf';
 
@@ -71,7 +72,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
       
       for (let i = 1; i <= maxPreviewPages; i++) {
         const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 0.15 });
+        const viewport = page.getViewport({ scale: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 300 / page.getViewport({ scale: 1 }).width : 0.15 });
         
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -304,15 +305,15 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
       {/* File Info */}
       {file && (
         <Card variant="outlined">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <svg className="w-10 h-10 text-red-500" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
                 <path d="M14 2v6h6" fill="white" />
                 <text x="7" y="17" fontSize="6" fill="white" fontWeight="bold">PDF</text>
               </svg>
-              <div>
-                <p className="font-medium text-[hsl(var(--color-foreground))]">{file.name}</p>
+              <div className="min-w-0">
+                <p className="truncate font-medium text-[hsl(var(--color-foreground))]">{file.name}</p>
                 <p className="text-sm text-[hsl(var(--color-muted-foreground))]">
                   {formatSize(file.size)} • {totalPages} {totalPages === 1 ? 'page' : 'pages'}
                 </p>
@@ -333,7 +334,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
       {/* Page Selection */}
       {file && totalPages > 0 && (
         <Card variant="outlined" size="lg">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <h3 className="text-lg font-medium text-[hsl(var(--color-foreground))]">
               {tTools('deletePages.selectTitle') || 'Select Pages to Delete'}
               {selectedPages.size > 0 && (
@@ -368,7 +369,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
               onChange={(e) => setPageInput(e.target.value)}
               placeholder="e.g., 1-5, 8, 10-15"
               disabled={isProcessing}
-              className="flex-1 px-3 py-2 rounded-[var(--radius-md)] border border-[hsl(var(--color-border))] bg-[hsl(var(--color-background))] text-[hsl(var(--color-foreground))] placeholder:text-[hsl(var(--color-muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))]"
+              className="min-w-0 flex-1 px-3 py-2 rounded-[var(--radius-md)] border border-[hsl(var(--color-border))] bg-[hsl(var(--color-background))] text-[hsl(var(--color-foreground))] placeholder:text-[hsl(var(--color-muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))]"
             />
             <Button
               variant="secondary"
@@ -394,7 +395,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 max-h-[400px] overflow-y-auto p-1">
+            <PagePreviewGrid file={file} className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 max-h-[400px] overflow-y-auto p-1">
               {pagePreviews.map((preview) => (
                 <button
                   key={preview.pageNumber}
@@ -406,6 +407,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
                       ? 'border-red-500 ring-2 ring-red-300 opacity-60'
                       : 'border-[hsl(var(--color-border))] hover:border-red-300'
                   }`}
+                  aria-pressed={selectedPages.has(preview.pageNumber)}
                   aria-label={`Page ${preview.pageNumber}${selectedPages.has(preview.pageNumber) ? ' (selected for deletion)' : ''}`}
                 >
                   {preview.thumbnail ? (
@@ -425,7 +427,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
                     {preview.pageNumber}
                   </div>
                   {selectedPages.has(preview.pageNumber) && (
-                    <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
+                    <div data-foliokit-delete-overlay className="absolute inset-0 bg-red-500/20 flex items-center justify-center">
                       <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -435,7 +437,7 @@ export function DeletePagesTool({ className = '' }: DeletePagesToolProps) {
                   )}
                 </button>
               ))}
-            </div>
+            </PagePreviewGrid>
           )}
         </Card>
       )}

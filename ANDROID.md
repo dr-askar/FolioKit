@@ -213,7 +213,7 @@ The script serves only local synthetic PDF fixtures and local assets. It sends a
 Focused unit command, including save/export integrity, message origin/source checks, close cancellation and Android Back listener cleanup:
 
 ```sh
-npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+npm test -- src/__tests__/components/tools/PagePreviewGrid.test.tsx src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
 npx tsc --noEmit
 ```
 
@@ -224,3 +224,17 @@ Published Android workflows now attach a verified ZIP containing the same APK an
 ### 0.1.3 build and verification
 
 The signed 0.1.3 APK is **203,449,055 bytes (194.02 MiB)**, built from clean application revision `7c323ecd3e7bdaf10ab2b026d449b82a204bc511`. Its matching source archive and embedded source metadata record that revision; subsequent documentation and smoke-server MIME updates do not change this binary. All 17 languages and bundled engines remain included. The [publication run](https://github.com/dr-askar/FolioKit/actions/runs/39031128339) passed ordinary installation and activity launch on API 23, 35 and 36 before publishing. The focused suite passed 33 tests, TypeScript passed, and touch checks exercised the exported Android reader at 320/360px, Arabic/RTL and landscape, including saved annotation appearances. These are browser simulations and emulator launch checks, not a physical-device test of every tool. See [the detailed validation](docs/android-v0.1.3-validation.md) and [release files](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.3-preview) for checksums, provenance and remaining limits.
+
+## Mobile menus and page inspection (0.1.4)
+
+The reader's More menu uses full-width touch rows with wrapping labels and a bounded, scrollable height. The page sidebar is an overlay with visible navigation tabs; selecting a thumbnail closes it. Selected ink/highlight/text marks have a compact delete button above the bottom toolbar. Delete dispatches PDF.js's normal undoable action. The deletion undo notice explicitly clears the desktop `top` offset before using a bottom offset, preventing a full-height notification. Expanded panels/sidebar close through the scoped Android Back adapter. Reader regressions cover English, Arabic and German, narrow and landscape viewports, menu/sidebar geometry, actual deletion/undo and notification size.
+
+Delete, Extract, Split, Organize, Rotate, Custom Rotate and PDF Multi Tool share mobile preview sizing. The default is two columns; minus makes cards smaller (three columns), plus makes them larger (one column). The choice is saved locally across tools. Android thumbnails render at 300px width, and page images fit without clipping. An explicit magnifier opens the original PDF page for inspection without toggling its selection. Inspection supports zoom/fit and scrolling, reflects rotation where applicable, traps focus using a modal dialog, and closes with Close, Escape or Android Back. It destroys its PDF loading/rendering work and removes the Back listener on exit, including late registration. Inspection draws on demand even beyond a tool's thumbnail cap; a blank/generated multi-tool page has no source PDF to inspect. The backing canvas is limited to four million pixels. Desktop/web retain the existing grids and controls.
+
+```sh
+# After a clean committed Android export:
+FOLIOKIT_STATIC_DIR=out npm run test:mobile
+FOLIOKIT_STATIC_DIR=out npm run test:mobile:pages
+```
+
+The page suite uses synthetic PDFs, verifies adjustable sharp previews, opens and zooms a page without changing the selected page, deletes that page and reopens the export to check the exact remaining pages. It also checks on-demand page 51 inspection and the shared controls in all seven tools. Browser touch simulations and native installation checks must still be distinguished from physical-phone operation. The signed 0.1.4 preview uses versionCode 5 and the same distribution key as 0.1.2/0.1.3.

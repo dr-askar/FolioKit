@@ -46,7 +46,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - run: npm ci
       - name: Focused Android checks
-        run: npm test -- src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
+        run: npm test -- src/__tests__/components/tools/PagePreviewGrid.test.tsx src/__tests__/components/tools/PDFReaderTool.test.tsx src/__tests__/components/android/AndroidIntlProvider.test.tsx src/__tests__/lib/android-bridge.test.ts src/__tests__/lib/android-packaging.test.ts src/__tests__/lib/tauri-bridge.test.ts
       - name: Restore private distribution key outside the checkout
         if: env.BUILD_KIND == 'release'
         env:
@@ -79,6 +79,7 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           BROWSER_EXECUTABLE="$(node -p "require('playwright').chromium.executablePath()")" npm run test:mobile
+          BROWSER_EXECUTABLE="$(node -p "require('playwright').chromium.executablePath()")" npm run test:mobile:pages
       - uses: actions/upload-artifact@v4
         if: always()
         with:

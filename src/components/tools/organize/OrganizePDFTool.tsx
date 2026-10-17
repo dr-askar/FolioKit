@@ -8,6 +8,7 @@ import { DownloadButton } from '../DownloadButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { organizePDF } from '@/lib/pdf/processors/organize';
+import { PagePreviewGrid } from '../PagePreviewGrid';
 import { configurePdfjsWorker } from '@/lib/pdf/loader';
 import type { ProcessOutput } from '@/types/pdf';
 
@@ -78,7 +79,7 @@ export function OrganizePDFTool({ className = '' }: OrganizePDFToolProps) {
 
       for (let i = 1; i <= maxPreviewPages; i++) {
         const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 0.3 });
+        const viewport = page.getViewport({ scale: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 300 / page.getViewport({ scale: 1 }).width : 0.3 });
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -436,7 +437,7 @@ export function OrganizePDFTool({ className = '' }: OrganizePDFToolProps) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 max-h-[500px] overflow-y-auto p-1">
+            <PagePreviewGrid file={file} documents={pageOrder.map(pageNumber => ({ file, pageNumber }))} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 max-h-[500px] overflow-y-auto p-1">
               {pageOrder.map((pageNum, index) => {
                 const preview = getPreviewForPage(pageNum);
                 return (
@@ -539,7 +540,7 @@ export function OrganizePDFTool({ className = '' }: OrganizePDFToolProps) {
                   </div>
                 );
               })}
-            </div>
+            </PagePreviewGrid>
           )}
 
           {hasOrderChanged() && (

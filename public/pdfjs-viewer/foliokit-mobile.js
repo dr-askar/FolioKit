@@ -33,6 +33,7 @@
     settings: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/>',
     undo: '<path d="m9 5-5 5 5 5M4 10h9a6 6 0 0 1 0 12"/>',
     redo: '<path d="m15 5 5 5-5 5m5-5h-9a6 6 0 0 0 0 12"/>',
+    delete: '<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',
   };
   function button(id, label, icon, action) {
     const node = document.createElement('button');
@@ -65,6 +66,9 @@
   top.append(pages);
   for (const id of ['zoomOutButton', 'zoomInButton', 'secondaryToolbarToggleButton']) if ($(id)) top.append($(id));
   $('outerContainer').append(top);
+  $('sidebarContent')?.addEventListener('click', event => {
+    if (event.target.closest('.thumbnail, .treeItem > a')) app.pdfSidebar.close();
+  });
   // Find is no longer anchored inside the website-sized toolbar.
   if ($('findbar')) document.body.append($('findbar'));
   if ($('secondaryToolbar')) document.body.append($('secondaryToolbar'));
@@ -105,6 +109,8 @@
   };
   function showPanel(panel) {
     if (!panel) return;
+    app.secondaryToolbar?.close();
+    app.pdfSidebar?.close();
     closePanel();
     openPanel = panel;
     panel.classList.remove('hidden');
@@ -132,7 +138,7 @@
       panel.prepend(header);
     }
     if ([9, 15, 3].includes(editorMode)) bottom.append(node);
-    else if (more) more.prepend(node);
+    else if (more) { $(id)?.classList.add('labeled'); more.prepend(node); }
   }
   bottom.append(settings);
   const undo = button('foliokit-undo', labels.undo, 'undo', () => bus.dispatch('editingaction', { source: bottom, name: 'undo' }));
@@ -142,11 +148,19 @@
   if (more) {
     redo = button('foliokit-redo', labels.redo, 'redo', () => bus.dispatch('editingaction', { source: more, name: 'redo' }));
     redo.disabled = true;
+    const text = document.createElement('span');
+    text.textContent = labels.redo;
+    redo.append(text);
     more.prepend(redo);
   }
+  const deleteSelection = button('foliokit-delete-selection', labels.delete || 'Delete selection', 'delete', () => bus.dispatch('editingaction', { source: bottom, name: 'delete' }));
+  deleteSelection.hidden = true;
+  deleteSelection.addEventListener('pointerdown', event => { event.preventDefault(); event.stopPropagation(); });
+  $('outerContainer').append(deleteSelection);
   bus._on('annotationeditorstateschanged', ({ details }) => {
     if ('hasSomethingToUndo' in details) undo.disabled = !details.hasSomethingToUndo;
     if (redo && 'hasSomethingToRedo' in details) redo.disabled = !details.hasSomethingToRedo;
+    if ('hasSelectedEditor' in details) deleteSelection.hidden = !details.hasSelectedEditor;
   });
   $('outerContainer').append(bottom);
   function syncMode({ mode: nextMode }) {
@@ -165,6 +179,8 @@
   // Closing settings does not dispatch a mode change: annotation stays selected.
   document.addEventListener('pointerdown', event => {
     if (openPanel && !openPanel.contains(event.target) && !settings.contains(event.target)) closePanel();
+    if (app.pdfSidebar?.isOpen && !$('sidebarContainer').contains(event.target) && !$('sidebarToggleButton').contains(event.target)) app.pdfSidebar.close();
+    if (app.secondaryToolbar?.isOpen && !$('secondaryToolbar').contains(event.target) && !$('secondaryToolbarToggleButton').contains(event.target)) app.secondaryToolbar.close();
   }, true);
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && openPanel) {

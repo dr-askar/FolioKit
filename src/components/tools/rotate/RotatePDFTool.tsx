@@ -8,6 +8,7 @@ import { DownloadButton } from '../DownloadButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { rotatePDF } from '@/lib/pdf/processors/rotate';
+import { PagePreviewGrid } from '../PagePreviewGrid';
 import { configurePdfjsWorker } from '@/lib/pdf/loader';
 import type { ProcessOutput } from '@/types/pdf';
 
@@ -92,7 +93,7 @@ export function RotatePDFTool({ className = '' }: RotatePDFToolProps) {
 
       for (let i = 1; i <= maxPreviewPages; i++) {
         const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 0.15 });
+        const viewport = page.getViewport({ scale: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 300 / page.getViewport({ scale: 1 }).width : 0.15 });
 
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -931,7 +932,7 @@ export function RotatePDFTool({ className = '' }: RotatePDFToolProps) {
               </div>
             ) : (
               <div className="bg-[hsl(var(--color-card))] rounded-[var(--radius-lg)] border border-[hsl(var(--color-border))] p-5 max-h-[640px] overflow-y-auto shadow-inner">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-1">
+                <PagePreviewGrid file={file} documents={pagePreviews.map(page => ({ file, pageNumber: page.pageNumber, rotation: page.rotation }))} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-1">
                   {pagePreviews.map((preview) => {
                     const isSelected = selectedPages.has(preview.pageNumber);
                     const isRotated = preview.rotation !== 0;
@@ -1025,7 +1026,7 @@ export function RotatePDFTool({ className = '' }: RotatePDFToolProps) {
                       </div>
                     );
                   })}
-                </div>
+                </PagePreviewGrid>
               </div>
             )}
           </div>

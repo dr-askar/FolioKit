@@ -7,6 +7,7 @@ import { ProcessingProgress, ProcessingStatus } from '../ProcessingProgress';
 import { DownloadButton } from '../DownloadButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { PagePreviewGrid } from '../PagePreviewGrid';
 import { configurePdfjsWorker } from '@/lib/pdf/loader';
 import { saveBlobFile } from '@/lib/tauri-bridge';
 
@@ -115,7 +116,7 @@ export function PDFMultiTool({ className = '' }: PDFMultiToolProps) {
 
           if (i <= maxPreviewPages) {
             const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 0.2 });
+            const viewport = page.getViewport({ scale: process.env.NEXT_PUBLIC_ANDROID_BUILD === 'true' ? 300 / page.getViewport({ scale: 1 }).width : 0.2 });
 
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -656,7 +657,7 @@ export function PDFMultiTool({ className = '' }: PDFMultiToolProps) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 max-h-[500px] overflow-y-auto p-1">
+            <PagePreviewGrid documents={pagePreviews.map(page => ({ file: sourceFiles[page.sourceFileIndex]?.file, pageNumber: page.originalPageNumber, rotation: page.rotation }))} className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 max-h-[500px] overflow-y-auto p-1">
               {pagePreviews.map((page, index) => (
                 <div
                   key={`page-${index}`}
@@ -791,7 +792,7 @@ export function PDFMultiTool({ className = '' }: PDFMultiToolProps) {
                   </div>
                 </div>
               ))}
-            </div>
+            </PagePreviewGrid>
           )}
 
           {/* Action Buttons */}
