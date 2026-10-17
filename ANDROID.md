@@ -100,3 +100,32 @@ The APK built from source commit `c3e7ddf21ce9822b074c00c63626df82465b6432` is *
 The remaining size is largely real bundled engines. Getting below 100 MB would require a separate product decision, such as omitting engines/tools or making them optional downloads, rather than another safe duplicate-file cleanup.
 
 Validation: 23 focused tests passed, TypeScript passed, the production Android frontend and Gradle APK build succeeded, and Android apksigner verified the package. A Chromium browser smoke test loaded Arabic with RTL, loaded the English merge tool, imported two one-page PDFs, and downloaded a valid two-page PDF without uncaught JavaScript/hydration errors. This was **not** a physical-device/emulator test. See [the recorded validation](docs/android-v0.1.1-validation.md), the [preview release](https://github.com/dr-askar/FolioKit/releases/tag/v0.1.1-preview), and its attached `apk-report.json` for exact provenance and component sizes.
+
+## Source archive versus Git checkout
+
+Use a Git checkout for releases: the notices generator records `git rev-parse HEAD` and verifies the checkout is clean. For the 0.1.1 preview:
+
+```sh
+git clone https://github.com/dr-askar/FolioKit.git
+cd FolioKit
+git checkout --detach v0.1.1-preview
+npm ci
+npm run android:debug
+```
+
+GitHub and `git archive` source archives omit `.git`. If building from a **freshly extracted** corresponding-source archive, restore only its Git metadata before running the commands above. Run the following inside the extracted source directory (not an existing project with unrelated changes):
+
+```sh
+git init
+git remote add origin https://github.com/dr-askar/FolioKit.git
+git fetch --depth=1 origin refs/tags/v0.1.1-preview
+git reset --mixed FETCH_HEAD
+npm ci
+npm run android:debug
+```
+
+The mixed reset sets HEAD/index to the fetched release revision and leaves the extracted working files in place. A matching, unchanged source archive should then have a clean status. This step requires access to the public repository. Without `.git`, the source-metadata generator intentionally fails rather than attaching an invented source revision to a distributable APK. Node package and Android/Gradle dependency downloads also normally require network access.
+
+## Release upload troubleshooting
+
+A connected integration can allow Git pushes/API calls but reject `uploads.github.com` with `401 Bad credentials`. Do not put tokens in files or the repository, and do not assume that uploading source to `main` has uploaded an APK. Use the manual Android Actions workflow with `release_tag` instead; its publish job receives GitHub's own short-lived repository token with explicit Contents write permission. Select the intended release tag as the workflow ref so its APK and source archive refer to the same revision. Verify the completed GitHub Release asset list and the size report before declaring the APK published. If a prior upload left a draft, inspect it before retrying to avoid duplicate release names or incomplete asset sets.
